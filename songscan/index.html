@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SongScan: tempo, key, chords and structure of any song</title>
+<meta name="description" content="Drop in a song and SongScan finds its tempo, key, chords and song structure, right in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F0FA; --surface:#FFFFFF; --sunk:#E9E4F5; --ink:#1E1631; --muted:#5F5775; --line:#D9D2EA;
+  --accent:#5B3DF5; --accent-ink:#FFFFFF; --amber:#E86A12; --low:#B9AEDB; --mid:#8E78F0; --high:#E86A12;
+  --wheel-dim:.18; --focus:#5B3DF5;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15111F; --surface:#1F1A2C; --sunk:#2A2340; --ink:#EEEAF7; --muted:#A9A1BF; --line:#3A3252;
+    --accent:#9C88FF; --accent-ink:#15111F; --amber:#FFA25E; --low:#4A4068; --mid:#7D6BD9; --high:#FFA25E;
+    --wheel-dim:.22; --focus:#B8A9FF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15111F; --surface:#1F1A2C; --sunk:#2A2340; --ink:#EEEAF7; --muted:#A9A1BF; --line:#3A3252;
+  --accent:#9C88FF; --accent-ink:#15111F; --amber:#FFA25E; --low:#4A4068; --mid:#7D6BD9; --high:#FFA25E;
+  --wheel-dim:.22; --focus:#B8A9FF; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.0625rem/1.6 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;line-height:1.05;margin:0;letter-spacing:-.02em}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(1.1rem,4vw,2rem)}
+.num{font-variant-numeric:tabular-nums}
+
+header.top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.25rem 0}
+.brand{display:flex;align-items:center;gap:.6rem;font:800 1.35rem/1 "Bricolage Grotesque",sans-serif;color:var(--ink);text-decoration:none;letter-spacing:-.02em}
+.brand svg{width:30px;height:30px;flex:none}
+.brand-text{display:flex;flex-direction:column;gap:.3rem}
+.brand-text small{font:600 .62rem/1.2 "Public Sans",sans-serif;letter-spacing:.06em;color:var(--muted);padding-top:.3rem;border-top:1.5px solid var(--accent);white-space:nowrap}
+@media (max-width:480px){.brand-text small{font-size:.5rem;letter-spacing:.02em}}
+nav.links{display:flex;gap:1.4rem;font-size:.95rem}
+nav.links a{color:var(--muted);text-decoration:none}
+nav.links a:hover{color:var(--ink)}
+@media (max-width:640px){nav.links a:not(.gh){display:none}}
+
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(1.5rem,5vw,4rem);align-items:center;padding:clamp(2rem,6vw,4.5rem) 0 clamp(2rem,5vw,3.5rem)}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(2.6rem,6.4vw,4.9rem);font-weight:800;font-variation-settings:"opsz" 96;max-width:11ch}
+.hero p.lede{font-size:1.15rem;color:var(--muted);max-width:44ch;margin:1.4rem 0 0}
+.hero .privacy{display:flex;gap:.55rem;align-items:center;margin-top:1.4rem;font-size:.95rem;color:var(--ink)}
+.hero .privacy svg{flex:none;width:20px;height:20px;color:var(--accent)}
+
+.drop{position:relative;background:var(--surface);border:2px dashed var(--line);border-radius:28px;padding:clamp(1.5rem,4vw,2.5rem);text-align:center;transition:border-color .2s,background .2s}
+.drop.over{border-color:var(--accent);background:var(--sunk)}
+.drop .disc{width:132px;height:132px;margin:0 auto 1.2rem;display:block}
+.drop .disc .spin{transform-origin:50% 50%}
+.drop.busy .disc .spin{animation:spin 1.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.drop h2{font-size:1.6rem;font-weight:600}
+.drop .formats{color:var(--muted);font-size:.9rem;margin:.4rem 0 1.3rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font:600 1rem/1 "Public Sans",sans-serif;padding:.95rem 1.4rem;border-radius:999px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:progress}
+.drop .alt{margin-top:1.1rem;font-size:.95rem;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--accent);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.progress{height:6px;border-radius:6px;background:var(--sunk);overflow:hidden;margin:1.3rem auto 0;max-width:280px;display:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.drop.busy .progress{display:block}
+.status{min-height:1.5em;margin-top:.7rem;font-size:.95rem;color:var(--muted)}
+.status.err{color:var(--amber)}
+
+/* results */
+#results{display:none;padding-bottom:clamp(2.5rem,6vw,4rem)}
+#results.show{display:block}
+.res-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.5rem 1.5rem;border-top:2px solid var(--ink);padding-top:1.2rem;margin-bottom:1.6rem}
+.res-head h2{font-size:clamp(1.5rem,3.2vw,2.2rem);font-weight:600;overflow-wrap:anywhere}
+.res-head .again{font-size:.95rem}
+.board{display:grid;grid-template-columns:minmax(280px,420px) 1fr;gap:clamp(1.5rem,4vw,3.5rem);align-items:center}
+@media (max-width:820px){.board{grid-template-columns:1fr}}
+.wheel{width:100%;max-width:420px;margin:0 auto;display:block}
+.wheel text{font-family:"Public Sans",sans-serif;pointer-events:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.stat{padding:1.1rem 0 1.2rem;border-bottom:1px solid var(--line)}
+.stat:nth-child(odd){padding-right:1rem;border-right:1px solid var(--line)}
+.stat:nth-child(even){padding-left:1.4rem}
+.stat .k{font-size:.92rem;color:var(--muted)}
+.stat .v{font:800 clamp(2rem,4.6vw,3.2rem)/1.05 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin:.25rem 0 .35rem;font-variant-numeric:tabular-nums}
+.stat .v small{font:600 1rem "Public Sans",sans-serif;letter-spacing:0;color:var(--muted);margin-left:.3rem}
+.stat .note{font-size:.9rem;color:var(--muted)}
+.meter{display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:var(--muted);margin-top:.35rem}
+.meter b{display:inline-flex;gap:3px}
+.meter b i{width:14px;height:6px;border-radius:3px;background:var(--line)}
+.meter b i.on{background:var(--accent)}
+@media (max-width:480px){.stats{grid-template-columns:1fr}.stat:nth-child(odd){border-right:0;padding-right:0}.stat:nth-child(even){padding-left:0}}
+
+.lane{margin-top:2.6rem}
+.lane h3{font-size:1.35rem;font-weight:600;margin-bottom:.4rem}
+.lane p.sub{color:var(--muted);margin:0 0 1rem;font-size:.95rem;max-width:62ch}
+.wavebox{position:relative;background:var(--surface);border-radius:18px;padding:14px;border:1px solid var(--line)}
+canvas#wave{display:block;width:100%;height:150px;cursor:pointer;touch-action:manipulation}
+.player{display:flex;align-items:center;gap:1rem;margin-top:.9rem;flex-wrap:wrap}
+.player .time{font-size:.92rem;color:var(--muted)}
+.legend{display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.9rem;color:var(--muted);margin-left:auto}
+.legend span{display:inline-flex;align-items:center;gap:.4rem}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(1.5rem,4vw,3rem);margin-top:2.6rem}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+.mixes{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.mixes li{display:grid;grid-template-columns:4.2rem 1fr;gap:1rem;align-items:center;padding:.85rem 0;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;justify-content:center;height:2.6rem;border-radius:999px;font:800 1.05rem "Bricolage Grotesque",sans-serif;color:#fff}
+.mixes .nm{font-weight:600}
+.mixes .why{font-size:.9rem;color:var(--muted)}
+.tap{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:1.3rem;text-align:center}
+.tap .readout{font:800 3rem/1 "Bricolage Grotesque",sans-serif;margin:.6rem 0 .3rem;font-variant-numeric:tabular-nums}
+.tap .hint{font-size:.9rem;color:var(--muted);margin:0 0 1rem}
+.tap .btn{min-width:9rem;min-height:3.2rem;touch-action:manipulation}
+.tap .btn.hit{transform:scale(.96)}
+kbd{font:600 .85em "Public Sans",sans-serif;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:.05em .4em;background:var(--bg)}
+
+/* sections */
+section.band{padding:clamp(3rem,7vw,5rem) 0;border-top:1px solid var(--line)}
+section.band h2{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:800;max-width:18ch}
+section.band p.intro{color:var(--muted);max-width:56ch;margin:1rem 0 2.2rem;font-size:1.08rem}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem 2.4rem}
+@media (max-width:820px){.features{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.features{grid-template-columns:1fr}}
+.feature svg{width:30px;height:30px;color:var(--accent);margin-bottom:.6rem}
+.feature h3{font-size:1.2rem;font-weight:600;margin-bottom:.3rem}
+.feature p{margin:0;color:var(--muted);font-size:.97rem}
+.howgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem 2.4rem}
+@media (max-width:820px){.howgrid{grid-template-columns:1fr}}
+.howgrid h3{font-size:1.25rem;font-weight:600;margin-bottom:.4rem}
+.howgrid p{margin:0;color:var(--muted);font-size:.97rem;max-width:40ch}
+.limits{margin-top:2.6rem;background:var(--surface);border-left:4px solid var(--amber);border-radius:0 16px 16px 0;padding:1.3rem 1.5rem}
+.limits h3{font-size:1.2rem;font-weight:600;margin-bottom:.5rem}
+.limits ul{margin:0;padding-left:1.1rem;color:var(--muted)}
+.limits li{margin:.3rem 0;max-width:72ch}
+.cta-row{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:2.2rem}
+.apk-note{color:var(--muted);font-size:.92rem;max-width:62ch;margin:1rem 0 0}
+@media (max-width:400px){nav.links{gap:.9rem;font-size:.9rem}nav.links a.gh-git{display:none}}
+footer{border-top:1px solid var(--line);padding:2rem 0 2.6rem;color:var(--muted);font-size:.95rem}
+footer .wrap{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+
+:root{--teal:#127F73;--pink:#C2366B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--teal:#4FD1BF;--pink:#F07AA6}}
+:root[data-theme="dark"]{--teal:#4FD1BF;--pink:#F07AA6}
+.sections-row{position:relative;height:38px;margin-bottom:10px}
+.sec-block{position:absolute;top:0;bottom:0;border:0;border-radius:8px;padding:0 .45rem;font:600 .8rem/38px "Public Sans",sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.sec-block:hover{filter:brightness(1.07)}
+.nowplaying{font-size:.95rem}
+.nowplaying b{font-family:"Bricolage Grotesque",sans-serif;font-size:1.15rem}
+.seclist{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.seclist li{border-bottom:1px solid var(--line)}
+.seclist button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:minmax(9rem,1.1fr) minmax(8rem,1fr) 2fr;gap:.4rem 1.2rem;align-items:center;width:100%;padding:.85rem .2rem;cursor:pointer}
+.seclist button:hover{background:var(--sunk)}
+.seclist button:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.seclist .sn{display:flex;align-items:center;gap:.55rem;font-weight:600}
+.seclist .sn i{width:12px;height:28px;border-radius:4px;flex:none}
+.seclist .sn em{font-style:normal;font-weight:400;font-size:.82rem;color:var(--muted)}
+.seclist .st{font-size:.9rem;color:var(--muted)}
+.chords{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chords span{font:700 .95rem "Bricolage Grotesque",sans-serif;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.15rem .5rem}
+.chords small{color:var(--muted);font-size:.85rem;margin-left:.2rem}
+@media (max-width:640px){.seclist button{grid-template-columns:1fr auto}.seclist .chords{grid-column:1/-1}}
+.notes{margin:0;padding-left:1.15rem;max-width:72ch}
+.notes li{margin:.45rem 0}
+.caveat{font-size:.9rem;color:var(--amber);margin:.4rem 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#top" aria-label="SongScan by Sound of Drip Musictech Private Limited, home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--ink)"/><circle cx="16" cy="16" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/><circle cx="16" cy="16" r="3" fill="var(--amber)"/></svg>
+      <span class="brand-text"><span>SongScan</span><small>SOUND OF DRIP MUSICTECH PRIVATE LIMITED</small></span>
+    </a>
+    <nav class="links" aria-label="Page sections">
+      <a href="#scan">Scan a song</a>
+      <a class="gh" href="../media/apps/SongScan.apk" download>Android app</a>
+      <a href="#how">How it works</a>
+      <a class="gh gh-git" href="https://github.com/Vatshub/SongScan" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="hero" id="scan">
+      <div>
+        <h1>See how any song is built.</h1>
+        <p class="lede">Drop in an audio file and SongScan listens to it right here in your browser. You get the BPM, the key and its Camelot code for DJ mixing, the chords, and a map of the song’s sections from intro to outro.</p>
+        <p class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your song stays on your device. Nothing is uploaded.</p>
+      </div>
+
+      <div class="drop" id="drop">
+        <svg class="disc" viewBox="0 0 132 132" aria-hidden="true">
+          <g class="spin">
+            <circle cx="66" cy="66" r="64" fill="var(--ink)"/>
+            <circle cx="66" cy="66" r="52" fill="none" stroke="var(--surface)" stroke-opacity=".12"/>
+            <circle cx="66" cy="66" r="42" fill="none" stroke="var(--surface)" stroke-opacity=".12"/>
+            <g id="discLabel"></g>
+            <circle cx="66" cy="66" r="5" fill="var(--bg)"/>
+          </g>
+        </svg>
+        <h2>Drop a song here</h2>
+        <p class="formats">MP3, WAV, M4A, FLAC or OGG, up to 12 minutes</p>
+        <label class="btn" id="chooseBtn"><input id="file" type="file" tabindex="-1" accept="audio/*,.mp3,.wav,.m4a,.flac,.ogg,.aac" class="sr">Choose a song</label>
+        <p class="alt">No song handy? <button class="linkbtn" id="demoBtn" type="button">Scan a test song</button></p>
+        <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <section id="results" aria-labelledby="resTitle">
+      <div class="res-head">
+        <h2 id="resTitle">Results</h2>
+        <button class="linkbtn again" id="againBtn" type="button">Scan another song</button>
+      </div>
+
+      <div class="board">
+        <svg class="wheel" id="wheel" viewBox="-210 -210 420 420" role="img" aria-labelledby="wheelDesc"><desc id="wheelDesc">Camelot wheel</desc></svg>
+        <div class="stats">
+          <div class="stat"><div class="k">Tempo</div><div class="v" id="sTempo">–</div><div class="note" id="nTempo"></div><div class="meter" id="mTempo"></div></div>
+          <div class="stat"><div class="k">Key</div><div class="v" id="sKey">–</div><div class="note" id="nKey"></div><div class="meter" id="mKey"></div></div>
+          <div class="stat"><div class="k">Length</div><div class="v" id="sLen">–</div><div class="note" id="nLen"></div></div>
+          <div class="stat"><div class="k">Loudness</div><div class="v" id="sLoud">–</div><div class="note" id="nLoud"></div></div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <h3>Structure and energy</h3>
+        <p class="sub">The top row shows the song’s sections. The strip under the waveform shows where it is quiet, medium or loud compared with its own loudest part. Click anywhere to jump there.</p>
+        <p class="caveat" id="structCaveat" hidden>No steady beat was found, so the sections and chords below are rough.</p>
+        <div class="wavebox">
+          <div class="sections-row" id="secRow"></div>
+          <canvas id="wave" tabindex="0" aria-label="Waveform. Click or use the arrow keys to move through the song."></canvas>
+        </div>
+        <div class="player">
+          <button class="btn" id="playBtn" type="button">Play</button>
+          <span class="time num" id="time">0:00 / 0:00</span>
+          <span class="nowplaying" id="now" aria-live="off"></span>
+          <div class="legend" aria-hidden="true">
+            <span><i style="background:var(--low)"></i>Quiet</span>
+            <span><i style="background:var(--mid)"></i>Medium</span>
+            <span><i style="background:var(--high)"></i>Loud</span>
+          </div>
+        </div>
+        <p class="sr" id="secText"></p>
+        <audio id="audio" preload="auto"></audio>
+      </div>
+
+      <div class="lane" id="secLane">
+        <h3>Sections and chords</h3>
+        <p class="sub">Each section with its main chord pattern. Names like verse and chorus are SongScan’s best guess, based on what repeats and how loud it is. Select a section to play it.</p>
+        <ul class="seclist" id="secList"></ul>
+      </div>
+
+      <div class="lane" id="notesLane">
+        <h3>Arrangement notes</h3>
+        <p class="sub">What SongScan noticed about how the song is put together.</p>
+        <ul class="notes" id="notes"></ul>
+      </div>
+
+      <div class="two">
+        <div>
+          <h3 style="font-size:1.35rem;font-weight:600;margin-bottom:.4rem" id="mixTitle">Keys that mix well</h3>
+          <p class="sub" style="color:var(--muted);margin:0 0 1rem;font-size:.95rem">DJs blend songs whose keys sit next to each other on the wheel, so the change sounds smooth.</p>
+          <ul class="mixes" id="mixes"></ul>
+        </div>
+        <div class="tap">
+          <h3 style="font-size:1.35rem;font-weight:600">Check the tempo yourself</h3>
+          <div class="readout" id="tapOut" aria-live="polite">–</div>
+          <p class="hint">Tap along with the beat, or press <kbd>T</kbd> on your keyboard.</p>
+          <button class="btn" id="tapBtn" type="button">Tap</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<section class="band" id="app">
+  <div class="wrap">
+    <h2>SongScan for Android</h2>
+    <p class="intro">The Android app is being built in the open. It brings the scanner to your phone, with a few extras.</p>
+    <div class="features">
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg><h3>A library of your scans</h3><p>Every song you check is saved on your phone, so its numbers are there when you’re building a set.</p></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><h3>Scan from a link</h3><p>Paste a link to an audio file and analyse it without saving it to your phone first.</p></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg><h3>The full Camelot wheel</h3><p>Browse all 24 keys and see which ones blend with the song you’re playing.</p></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 9.5a2 2 0 0 1 4 0V14a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.5 15a1.8 1.8 0 0 1 3-2L9 15"/></svg><h3>Tap tempo</h3><p>Tap along to any song, even one playing in the room, to check its speed.</p></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg><h3>A player with a waveform</h3><p>Listen back and jump straight to the loud drop or the quiet break.</p></div>
+    </div>
+    <div class="cta-row">
+      <a class="btn" href="../media/apps/SongScan.apk" download>Download the Android app</a>
+      <a class="btn ghost" href="https://github.com/Vatshub/SongScan" target="_blank" rel="noopener">Follow the build on GitHub</a>
+    </div>
+    <p class="apk-note">The app downloads as an APK file. To install it, open the file on your Android phone and allow installs from that app when asked. It’s an early version, so some screens are still being finished.</p>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <h2>How the scan works</h2>
+    <p class="intro">SongScan measures the sound itself. It doesn’t look the song up online, and it doesn’t guess from the title.</p>
+    <div class="howgrid">
+      <div><h3>Tempo</h3><p>It finds the moments where new sounds start, like drum hits and plucked notes, then looks for the gap that repeats most often. That gap becomes the beats per minute.</p></div>
+      <div><h3>Key</h3><p>It adds up how much of each of the 12 notes you hear across the whole song, then compares that pattern with how major and minor keys usually sound.</p></div>
+      <div><h3>Energy</h3><p>It tracks loudness every quarter of a second, smooths it out, and marks each stretch as quiet, medium or loud against the song’s own peak.</p></div>
+      <div><h3>Chords</h3><p>It lines up a grid of beats and bars, checks which notes sound in every half bar, and picks the closest major or minor chord, favouring the note in the bass.</p></div>
+      <div><h3>Sections</h3><p>It marks a new section where the chords or loudness clearly change, groups sections that sound alike, then names them: the loudest repeated part is the likely chorus.</p></div>
+    </div>
+    <div class="limits">
+      <h3>What to keep in mind</h3>
+      <ul>
+        <li>It works best on songs with a steady beat. Live recordings and free-tempo pieces can give a rough number.</li>
+        <li>Tempo can come out at half or double what you feel, which is common in drum and bass and trap. SongScan shows both.</li>
+        <li>A key can be confused with its partner key, like A minor and C major, because they share the same notes. When it’s close, SongScan tells you the runner-up.</li>
+        <li>Chords are simplified to major and minor, so a sevenths or suspended chord shows up as its closest plain chord. Busy mixes can blur them.</li>
+        <li>Section names are educated guesses. A song with one chorus, or a quiet chorus, can be labelled differently than you’d expect.</li>
+        <li>It doesn’t detect genre yet.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>SongScan is made by Drip (Prateek Vats).</span>
+    <a href="https://github.com/Vatshub/SongScan" target="_blank" rel="noopener">SongScan on GitHub</a>
+  </div>
+</footer>
+<script>
+// SongScan analysis engine (pure JS, no DOM)
+const SR = 22050;
+
+function makeFFT(n) {
+  const levels = Math.log2(n) | 0;
+  const cos = new Float64Array(n / 2), sin = new Float64Array(n / 2);
+  for (let i = 0; i < n / 2; i++) { cos[i] = Math.cos(2 * Math.PI * i / n); sin[i] = Math.sin(2 * Math.PI * i / n); }
+  const rev = new Uint32Array(n);
+  for (let i = 0; i < n; i++) { let r = 0, x = i; for (let j = 0; j < levels; j++) { r = (r << 1) | (x & 1); x >>= 1; } rev[i] = r; }
+  const win = new Float64Array(n);
+  for (let i = 0; i < n; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / n);
+  const re = new Float64Array(n), im = new Float64Array(n), mag = new Float64Array(n / 2);
+  // returns magnitude spectrum of windowed frame starting at offset
+  function run(x, off) {
+    for (let i = 0; i < n; i++) { const j = off + i; re[rev[i]] = (j < x.length ? x[j] : 0) * win[i]; im[rev[i]] = 0; }
+    for (let size = 2; size <= n; size <<= 1) {
+      const half = size >> 1, step = n / size;
+      for (let i = 0; i < n; i += size) {
+        for (let j = i, k = 0; j < i + half; j++, k += step) {
+          const l = j + half;
+          const tre = re[l] * cos[k] + im[l] * sin[k];
+          const tim = -re[l] * sin[k] + im[l] * cos[k];
+          re[l] = re[j] - tre; im[l] = im[j] - tim;
+          re[j] += tre; im[j] += tim;
+        }
+      }
+    }
+    for (let i = 0; i < n / 2; i++) mag[i] = Math.hypot(re[i], im[i]);
+    return mag;
+  }
+  return run;
+}
+
+const tick = () => new Promise(r => setTimeout(r, 0));
+
+async function onsetEnvelope(x, progress) {
+  const N = 1024, H = 256, fft = makeFFT(N);
+  const frames = Math.max(1, Math.floor((x.length - N) / H));
+  const flux = new Float64Array(frames), lowFlux = new Float64Array(frames);
+  let prev = new Float64Array(N / 2);
+  const lowBins = Math.round(250 * N / SR);
+  for (let t = 0; t < frames; t++) {
+    const m = fft(x, t * H);
+    let s = 0, sl = 0;
+    for (let k = 1; k < N / 2; k++) { const v = Math.log1p(100 * m[k]); const d = v - prev[k]; if (d > 0) { s += d; if (k <= lowBins) sl += d; } prev[k] = v; }
+    flux[t] = t === 0 ? 0 : s; lowFlux[t] = t === 0 ? 0 : sl;
+    if (t % 2000 === 0) { progress && progress(0.6 * t / frames); await tick(); }
+  }
+  // subtract local mean, half-wave rectify
+  const w = 16, o = new Float64Array(frames);
+  let acc = 0;
+  for (let t = 0; t < frames; t++) {
+    acc += flux[t]; if (t - 2 * w - 1 >= 0) acc -= flux[t - 2 * w - 1];
+    const c = t - w; if (c >= 0) { const cnt = Math.min(t + 1, 2 * w + 1); o[c] = Math.max(0, flux[c] - acc / cnt); }
+  }
+  const oLow = new Float64Array(frames);
+  let lm = 0; for (let t = 0; t < frames; t++) lm += lowFlux[t]; lm /= frames || 1;
+  let om = 0; for (let t = 0; t < frames; t++) om += o[t]; om /= frames || 1;
+  for (let t = 0; t < frames; t++) oLow[t] = (lm > 0 ? lowFlux[t] / lm : 0) + 0.3 * (om > 0 ? o[t] / om : 0);
+  return { o, oLow, fps: SR / H };
+}
+
+function estimateTempo(o, fps) {
+  const n = o.length;
+  let mean = 0; for (let i = 0; i < n; i++) mean += o[i]; mean /= n;
+  const z = new Float64Array(n); for (let i = 0; i < n; i++) z[i] = o[i] - mean;
+  const maxLag = Math.ceil(60 * fps / 30) + 2;
+  const ac = new Float64Array(maxLag + 1);
+  for (let L = 1; L <= maxLag; L++) { let s = 0; for (let t = 0; t + L < n; t++) s += z[t] * z[t + L]; ac[L] = s / (n - L); }
+  const at = l => { const i = Math.floor(l), f = l - i; return i + 1 > maxLag ? 0 : ac[i] * (1 - f) + ac[i + 1] * f; };
+  const scores = [];
+  let best = -Infinity, bestBpm = 120;
+  for (let b = 60; b <= 200.0001; b += 0.1) {
+    const L = 60 * fps / b;
+    const raw = at(L) + 0.5 * at(2 * L) + 0.25 * at(4 * L);
+    const w = Math.exp(-0.5 * Math.pow(Math.log2(b / 120) / 1.0, 2));
+    const s = raw * (0.6 + 0.4 * w);
+    scores.push(s);
+    if (s > best) { best = s; bestBpm = b; }
+  }
+  const bpms = scores.map((_, i) => 60 + i * 0.1);
+  const near = (a, b, tol) => Math.abs(a / b - 1) < tol;
+  let rival = 0;
+  for (let i = 0; i < scores.length; i++) {
+    const b = bpms[i];
+    if (near(b, bestBpm, 0.05) || near(b, bestBpm * 2, 0.04) || near(b, bestBpm / 2, 0.04) || near(b, bestBpm * 1.5, 0.03) || near(b, bestBpm / 1.5, 0.03)) continue;
+    rival = Math.max(rival, scores[i]);
+  }
+  const conf = best <= 0 ? 0 : Math.max(0, Math.min(1, 1 - Math.max(0, rival) / best));
+  const bpm = Math.round(bestBpm);
+  const alt = bpm < 100 ? bpm * 2 : Math.round(bpm / 2);
+  return { bpm, alt, confidence: conf };
+}
+
+const NOTES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+const MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+const MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+const CAM_MAJ = [8, 3, 10, 5, 12, 7, 2, 9, 4, 11, 6, 1]; // index by tonic pc
+const CAM_MIN = [5, 12, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10];
+
+function pearson(a, b) {
+  const n = a.length; let ma = 0, mb = 0; for (let i = 0; i < n; i++) { ma += a[i]; mb += b[i]; } ma /= n; mb /= n;
+  let num = 0, da = 0, db = 0; for (let i = 0; i < n; i++) { const x = a[i] - ma, y = b[i] - mb; num += x * y; da += x * x; db += y * y; }
+  return num / Math.sqrt(da * db + 1e-12);
+}
+
+async function estimateKey(x, progress) {
+  const N = 8192, H = 4096, fft = makeFFT(N);
+  const frames = Math.max(1, Math.floor((x.length - N) / H));
+  const binPc = new Int8Array(N / 2).fill(-1);
+  for (let k = 1; k < N / 2; k++) {
+    const f = k * SR / N; if (f < 80 || f > 2000) continue;
+    const p = 12 * Math.log2(f / 440) + 69; binPc[k] = ((Math.round(p) % 12) + 12) % 12;
+  }
+  const chroma = new Float64Array(12);
+  const c = new Float64Array(12);
+  for (let t = 0; t < frames; t++) {
+    const m = fft(x, t * H); c.fill(0);
+    for (let k = 1; k < N / 2; k++) if (binPc[k] >= 0) c[binPc[k]] += m[k];
+    let mx = 0; for (let i = 0; i < 12; i++) mx = Math.max(mx, c[i]);
+    if (mx > 1e-6) for (let i = 0; i < 12; i++) chroma[i] += c[i] / mx;
+    if (t % 200 === 0) { progress && progress(0.6 + 0.3 * t / frames); await tick(); }
+  }
+  const cands = [];
+  for (let r = 0; r < 12; r++) {
+    const rot = p => p.map((_, i) => p[(i - r + 12) % 12]);
+    cands.push({ tonic: r, mode: 'major', score: pearson(chroma, rot(MAJ)) });
+    cands.push({ tonic: r, mode: 'minor', score: pearson(chroma, rot(MIN)) });
+  }
+  cands.sort((a, b) => b.score - a.score);
+  const top = cands[0], second = cands[1];
+  const conf = Math.max(0, Math.min(1, (top.score - second.score) / 0.15));
+  return { ...describeKey(top.tonic, top.mode), confidence: conf, fit: top.score, runnerUp: describeKey(second.tonic, second.mode), chroma: Array.from(chroma) };
+}
+
+function describeKey(tonic, mode) {
+  const num = mode === 'major' ? CAM_MAJ[tonic] : CAM_MIN[tonic];
+  return { tonic, mode, name: `${NOTES[tonic]} ${mode}`, camelot: `${num}${mode === 'major' ? 'B' : 'A'}`, num, letter: mode === 'major' ? 'B' : 'A' };
+}
+
+function camelotToKey(num, letter) {
+  const arr = letter === 'B' ? CAM_MAJ : CAM_MIN;
+  const tonic = arr.indexOf(num);
+  return describeKey(tonic, letter === 'B' ? 'major' : 'minor');
+}
+
+function compatibleKeys(num, letter) {
+  const wrap = n => ((n - 1 + 12) % 12) + 1;
+  return [
+    { ...camelotToKey(num, letter === 'A' ? 'B' : 'A'), why: 'Same notes, brighter or darker mood' },
+    { ...camelotToKey(wrap(num - 1), letter), why: 'One step down the wheel' },
+    { ...camelotToKey(wrap(num + 1), letter), why: 'One step up the wheel' },
+  ];
+}
+
+function energyProfile(x, duration) {
+  const win = Math.floor(SR * 0.25);
+  const n = Math.max(1, Math.floor(x.length / win));
+  const rms = new Float64Array(n);
+  let peak = 0, sumSq = 0;
+  for (let i = 0; i < n; i++) {
+    let s = 0; for (let j = i * win; j < (i + 1) * win; j++) { const v = x[j]; s += v * v; const a = Math.abs(v); if (a > peak) peak = a; }
+    rms[i] = Math.sqrt(s / win); sumSq += s;
+  }
+  const overall = Math.sqrt(sumSq / (n * win));
+  // smooth over ~4 s
+  const k = 8, sm = new Float64Array(n);
+  for (let i = 0; i < n; i++) { let s = 0, c = 0; for (let j = Math.max(0, i - k); j <= Math.min(n - 1, i + k); j++) { s += rms[j]; c++; } sm[i] = s / c; }
+  const dbs = Array.from(sm).map(v => 20 * Math.log10(v + 1e-9));
+  const sortedDb = dbs.slice().sort((a, b) => a - b);
+  const loud = sortedDb[Math.floor(n * 0.9)];
+  const level = i => dbs[i] >= loud - 3 ? 2 : dbs[i] >= loud - 9 ? 1 : 0;
+  let segs = [];
+  for (let i = 0; i < n; i++) {
+    const l = level(i); const t = i * 0.25;
+    if (segs.length && segs[segs.length - 1].level === l) segs[segs.length - 1].end = t + 0.25;
+    else segs.push({ level: l, start: t, end: t + 0.25 });
+  }
+  // merge short segments (< 6 s) into previous
+  let changed = true;
+  while (changed && segs.length > 1) {
+    changed = false;
+    for (let i = 0; i < segs.length; i++) {
+      if (segs[i].end - segs[i].start < 6) {
+        const tgt = i > 0 ? i - 1 : i + 1;
+        segs[tgt].start = Math.min(segs[tgt].start, segs[i].start); segs[tgt].end = Math.max(segs[tgt].end, segs[i].end);
+        segs.splice(i, 1); changed = true; break;
+      }
+    }
+    // merge equal neighbours
+    for (let i = segs.length - 1; i > 0; i--) if (segs[i].level === segs[i - 1].level) { segs[i - 1].end = segs[i].end; segs.splice(i, 1); }
+  }
+  if (segs.length) segs[segs.length - 1].end = duration;
+  const db = v => 20 * Math.log10(v + 1e-9);
+  return { segments: segs, avgDb: db(overall), peakDb: db(peak), smooth: Array.from(sm) };
+}
+
+async function analyze(x, progress) {
+  const duration = x.length / SR;
+  const { o, oLow, fps } = await onsetEnvelope(x, progress);
+  const tempo = estimateTempo(o, fps);
+  const key = await estimateKey(x, progress);
+  progress && progress(0.95); await tick();
+  const energy = energyProfile(x, duration);
+  const cf = await chromaFrames(x, progress);
+  let structure = null;
+  try { structure = analyzeStructure(cf, oLow, fps, tempo, duration, energy.avgDb); } catch (e) { console.error(e); }
+  progress && progress(1);
+  return { duration, tempo, key, energy, structure, compatible: compatibleKeys(key.num, key.letter) };
+}
+
+// ---- Test loop: 124 BPM, A minor (Am - Dm - E - Am), 16 bars ----
+function synthTestLoop() {
+  const bpm = 124, beat = 60 / bpm, bars = 16, len = Math.ceil(bars * 4 * beat * SR);
+  const y = new Float32Array(len);
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  const chords = [[57, 60, 64], [62, 65, 69], [64, 68, 71], [57, 60, 64]]; // Am, Dm, E, Am
+  const roots = [45, 50, 40, 45];
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 * 2 - 1;
+  for (let bar = 0; bar < bars; bar++) {
+    const ch = chords[bar % 4], root = roots[bar % 4];
+    const b0 = Math.floor(bar * 4 * beat * SR), b1 = Math.floor((bar + 1) * 4 * beat * SR);
+    for (let i = b0; i < b1 && i < len; i++) {
+      const t = (i - b0) / SR; const env = Math.min(1, t * 20) * Math.min(1, (b1 - i) / SR * 20);
+      let s = 0;
+      for (const m of ch) { const f = hz(m); s += 0.6 * Math.sin(2 * Math.PI * f * t) + 0.25 * Math.sin(4 * Math.PI * f * t) + 0.1 * Math.sin(6 * Math.PI * f * t); }
+      y[i] += 0.06 * s * env;
+      const fb = hz(root); y[i] += 0.18 * (Math.sin(2 * Math.PI * fb * t) + 0.3 * Math.sin(4 * Math.PI * fb * t)) * env;
+    }
+    for (let q = 0; q < 4; q++) {
+      const k0 = Math.floor((bar * 4 + q) * beat * SR);
+      for (let i = 0; i < SR * 0.35 && k0 + i < len; i++) { const t = i / SR; const f = 50 + 100 * Math.exp(-t * 25); y[k0 + i] += 0.55 * Math.sin(2 * Math.PI * f * t * (1 + 0)) * Math.exp(-t * 9); }
+      const h0 = Math.floor((bar * 4 + q + 0.5) * beat * SR);
+      for (let i = 0; i < SR * 0.05 && h0 + i < len; i++) y[h0 + i] += 0.12 * rnd() * Math.exp(-i / SR * 70);
+    }
+  }
+  let mx = 0; for (let i = 0; i < len; i++) mx = Math.max(mx, Math.abs(y[i]));
+  for (let i = 0; i < len; i++) y[i] *= 0.89 / mx;
+  return y;
+}
+
+function encodeWav(x) {
+  const buf = new ArrayBuffer(44 + x.length * 2), v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + x.length * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, SR, true);
+  v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, x.length * 2, true);
+  for (let i = 0; i < x.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, x[i])) * 32767, true);
+  return buf;
+}
+
+// ---- Beat grid, chords, structure, arrangement ----
+const TRIADS = [];
+for (let r = 0; r < 12; r++) for (const q of ['maj', 'min']) {
+  const iv = q === 'maj' ? [0, 4, 7] : [0, 3, 7];
+  const t = new Float64Array(12); iv.forEach((s, i) => t[(r + s) % 12] = i === 0 ? 1 : i === 1 ? 0.9 : 0.8);
+  let n = 0; for (const v of t) n += v * v; n = Math.sqrt(n); for (let i = 0; i < 12; i++) t[i] /= n;
+  TRIADS.push({ root: r, q, t, name: NOTES[r] + (q === 'min' ? 'm' : '') });
+}
+
+async function chromaFrames(x, progress) {
+  const N = 4096, H = 1024, fft = makeFFT(N);
+  const frames = Math.max(1, Math.floor((x.length - N) / H));
+  const tre = new Float32Array(frames * 12), bas = new Float32Array(frames * 12), en = new Float32Array(frames);
+  const tpc = new Int8Array(N / 2).fill(-1), bpc = new Int8Array(N / 2).fill(-1);
+  for (let k = 1; k < N / 2; k++) {
+    const f = k * SR / N, pc = ((Math.round(12 * Math.log2(f / 440) + 69) % 12) + 12) % 12;
+    if (f >= 110 && f <= 2000) tpc[k] = pc;
+    if (f >= 40 && f < 180) bpc[k] = pc;
+  }
+  for (let t = 0; t < frames; t++) {
+    const m = fft(x, t * H); let e = 0;
+    for (let k = 1; k < N / 2; k++) {
+      const v = m[k]; e += v * v;
+      if (tpc[k] >= 0) tre[t * 12 + tpc[k]] += v;
+      if (bpc[k] >= 0) bas[t * 12 + bpc[k]] += v;
+    }
+    en[t] = e;
+    if (t % 400 === 0) { progress && progress(0.9 + 0.05 * t / frames); await tick(); }
+  }
+  return { tre, bas, en, frames, fps: SR / H };
+}
+
+function beatGrid(o, fps, bpm, duration) {
+  const P = 60 * fps / bpm; let best = -1, phase = 0;
+  for (let ph = 0; ph < P; ph += 1) {
+    let s = 0; for (let t = ph; t < o.length; t += P) { const i = Math.round(t); for (let d = -2; d <= 2; d++) if (o[i + d] > 0) s += o[i + d] * (d === 0 ? 1 : 0.5); }
+    if (s > best) { best = s; phase = ph; }
+  }
+  const beats = []; for (let t = phase / fps; t < duration; t += 60 / bpm) beats.push(t);
+  if (beats.length && beats[0] - 60 / bpm > -0.15 * 60 / bpm) beats.unshift(Math.max(0, beats[0] - 60 / bpm));
+  return beats;
+}
+
+function vecAvg(arr, f0, f1) {
+  const c = new Float64Array(12); f0 = Math.max(0, Math.floor(f0)); f1 = Math.max(f0 + 1, Math.floor(f1));
+  for (let f = f0; f < f1 && f * 12 < arr.length; f++) for (let i = 0; i < 12; i++) c[i] += arr[f * 12 + i];
+  return c;
+}
+const norm = v => { let n = 0; for (const a of v) n += a * a; n = Math.sqrt(n) || 1; return v.map(a => a / n); };
+const cos = (a, b) => { let s = 0, na = 0, nb = 0; for (let i = 0; i < a.length; i++) { s += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; } return s / (Math.sqrt(na * nb) || 1); };
+
+function analyzeStructure(cf, o, ofps, tempo, duration, avgDb) {
+  const beats = beatGrid(o, ofps, tempo.bpm, duration);
+  if (beats.length < 16) return null;
+  const fr = t => t * cf.fps;
+  const beatChroma = beats.map((t, k) => norm(vecAvg(cf.tre, fr(t), fr(beats[k + 1] || duration))));
+  // downbeat: the offset where chroma changes most
+  let bestOff = 0, bestS = -1;
+  for (let off = 0; off < 4; off++) { let s = 0; for (let k = off; k < beats.length; k += 4) if (k > 0) s += 1 - cos(beatChroma[k - 1], beatChroma[k]); if (s > bestS) { bestS = s; bestOff = off; } }
+  const bars = []; // {start,end}
+  if (bestOff > 0) bars.push({ start: 0, end: beats[bestOff], pickup: true });
+  for (let k = bestOff; k < beats.length; k += 4) if (beats[k] < duration - 120 / tempo.bpm) bars.push({ start: beats[k], end: Math.min(duration, beats[k + 4] || duration) });
+  const unit = tempo.bpm > 140 ? 4 : 2;
+  // chord units
+  const units = [];
+  for (let k = bestOff; k < beats.length; k += unit) {
+    const t0 = beats[k], t1 = beats[k + unit] || duration;
+    const tr = vecAvg(cf.tre, fr(t0), fr(t1)), ba = vecAvg(cf.bas, fr(t0), fr(t1));
+    let e = 0; for (let f = Math.floor(fr(t0)); f < Math.floor(fr(t1)) && f < cf.frames; f++) e += cf.en[f];
+    const bmax = Math.max(...ba) || 1;
+    units.push({ t0, t1, tr: norm(tr), bas: ba.map(v => v / bmax), e });
+  }
+  const eSorted = units.map(u => u.e).sort((a, b) => a - b), eRef = eSorted[Math.floor(eSorted.length * 0.9)] || 1;
+  // Viterbi over 24 triads + no-chord
+  const S = TRIADS.length + 1, pen = 0.1;
+  const emit = u => {
+    const silent = u.e < eRef * 0.003;
+    const sc = TRIADS.map(tr => cos(u.tr, tr.t) + 0.12 * u.bas[tr.root]);
+    sc.push(silent ? 2 : 0.45);
+    return sc;
+  };
+  let score = emit(units[0]), back = [];
+  for (let i = 1; i < units.length; i++) {
+    const em = emit(units[i]); let bestPrev = 0; for (let s = 1; s < S; s++) if (score[s] > score[bestPrev]) bestPrev = s;
+    const ns = new Float64Array(S), bk = new Int16Array(S);
+    for (let s = 0; s < S; s++) { const stay = score[s], sw = score[bestPrev] - pen; if (stay >= sw) { ns[s] = stay + em[s]; bk[s] = s; } else { ns[s] = sw + em[s]; bk[s] = bestPrev; } }
+    back.push(bk); score = ns;
+  }
+  let st = 0; for (let s = 1; s < S; s++) if (score[s] > score[st]) st = s;
+  const path = new Array(units.length); path[units.length - 1] = st;
+  for (let i = units.length - 2; i >= 0; i--) path[i] = back[i][path[i + 1]];
+  const chordName = s => s === TRIADS.length ? '–' : TRIADS[s].name;
+  units.forEach((u, i) => u.chord = chordName(path[i]));
+  // merged chord timeline
+  const chords = [];
+  for (const u of units) { if (chords.length && chords[chords.length - 1].name === u.chord) chords[chords.length - 1].end = u.t1; else chords.push({ name: u.chord, start: u.t0, end: u.t1 }); }
+  // bar features
+  const fullBars = bars.filter(b => !b.pickup);
+  const barChord = fullBars.map(b => { const us = units.filter(u => u.t0 >= b.start - 0.01 && u.t0 < b.end - 0.01); const names = []; us.forEach(u => { if (names[names.length - 1] !== u.chord) names.push(u.chord); }); return names.join(' ') || '–'; });
+  const barVec = fullBars.map(b => vecAvg(cf.tre, fr(b.start), fr(b.end)));
+  const barDb = fullBars.map(b => { let e = 0, c = 0; for (let f = Math.floor(fr(b.start)); f < Math.floor(fr(b.end)) && f < cf.frames; f++) { e += cf.en[f]; c++; } return 10 * Math.log10((e / (c || 1)) + 1e-12); });
+  const nb = fullBars.length, W = 4;
+  const win = (i0, i1) => { const c = new Float64Array(12); for (let i = Math.max(0, i0); i < Math.min(nb, i1); i++) { const v = norm(barVec[i]); for (let k = 0; k < 12; k++) c[k] += v[k]; } return c; };
+  const winDb = (i0, i1) => { let s = 0, c = 0; for (let i = Math.max(0, i0); i < Math.min(nb, i1); i++) { s += barDb[i]; c++; } return c ? s / c : 0; };
+  const nov = new Float64Array(nb);
+  for (let i = 2; i < nb - 1; i++) {
+    const w = Math.min(W, i, nb - i);
+    nov[i] = ((1 - cos(win(i - w, i), win(i, i + w))) * 4 + Math.min(1.5, Math.abs(winDb(i - w, i) - winDb(i, i + w)) / 4)) * (w / W) * (i % 4 === 0 ? 1.15 : 1);
+  }
+  if (typeof DEBUG !== 'undefined') DEBUG.nov = Array.from(nov);
+  let bounds = [0];
+  const cand = [];
+  for (let i = 2; i < nb - 1; i++) {
+    let isMax = true, lo = Infinity;
+    for (let d = -4; d <= 4; d++) { const j = i + d; if (j < 0 || j >= nb) continue; if (Math.abs(d) <= 2 && j !== i && nov[j] > nov[i]) isMax = false; lo = Math.min(lo, nov[j]); }
+    if (isMax && nov[i] >= 0.6 && nov[i] - lo >= 0.5) cand.push(i);
+  }
+  cand.sort((a, b) => nov[b] - nov[a]);
+  for (const c of cand) if (bounds.every(b => Math.abs(b - c) >= 4) && nb - c >= 2) bounds.push(c);
+  bounds.sort((a, b) => a - b);
+  const segs = bounds.map((b0, i) => {
+    const b1 = bounds[i + 1] || nb;
+    const v = norm(win(b0, b1)); return { b0, b1, vec: v, db: winDb(b0, b1), chords: barChord.slice(b0, b1) };
+  });
+  // group similar segments
+  const seqSim = (a, b) => { const n = Math.min(a.length, b.length); let m = 0; for (let i = 0; i < n; i++) if (a[i] === b[i]) m++; return n ? m / Math.max(a.length, b.length) : 0; };
+  let g = 0;
+  segs.forEach((s, i) => {
+    for (let j = 0; j < i; j++) {
+      const t = segs[j];
+      if (cos(s.vec, t.vec) > 0.97 && Math.abs(s.db - t.db) < 4 && (seqSim(s.chords, t.chords) >= 0.5 || cos(s.vec, t.vec) > 0.99)) { s.group = t.group; return; }
+    }
+    s.group = g++;
+  });
+  const groups = {}; segs.forEach(s => (groups[s.group] = groups[s.group] || []).push(s));
+  const loudest = Math.max(...segs.map(s => s.db));
+  const repeated = Object.values(groups).filter(a => a.length > 1).sort((a, b) => (b.reduce((x, s) => x + s.db, 0) / b.length) - (a.reduce((x, s) => x + s.db, 0) / a.length));
+  const labelOf = {};
+  if (repeated[0]) labelOf[repeated[0][0].group] = 'Chorus';
+  if (repeated[1]) labelOf[repeated[1][0].group] = 'Verse';
+  let letter = 0;
+  segs.forEach((s, i) => {
+    if (labelOf[s.group]) s.label = labelOf[s.group];
+    else if (segs.length === 1) s.label = 'Whole track';
+    else if (i === 0 && s.db < loudest - 3 && groups[s.group].every(t => t === s || t === segs[segs.length - 1])) s.label = 'Intro';
+    else if (i === segs.length - 1 && s.db < loudest - 3 && groups[s.group].every(t => t === s || t === segs[0])) s.label = 'Outro';
+    else if (groups[s.group].length === 1 && i > 0 && i < segs.length - 1) s.label = s.db < loudest - 4 ? 'Break' : 'Bridge';
+    else { labelOf[s.group] = 'Part ' + String.fromCharCode(65 + letter++); s.label = labelOf[s.group]; }
+    s.start = i === 0 ? 0 : fullBars[s.b0].start; s.end = s.b1 >= nb ? duration : fullBars[s.b1].start;
+    s.bars = s.b1 - s.b0; s.firstBar = s.b0 + 1;
+    // condensed chord loop for the section
+    const loop = condenseLoop(s.chords); s.loop = loop.seq; s.loopTimes = loop.times;
+  });
+  // numbering of repeats
+  const seen = {}; segs.forEach(s => { const n = groups[s.group].length; if (n > 1 && !['Intro', 'Outro'].includes(s.label)) { seen[s.label] = (seen[s.label] || 0) + 1; s.name = `${s.label} ${seen[s.label]}`; } else s.name = s.label; });
+  // main loop across song
+  const main = condenseLoop(barChord);
+  const notes = arrangementNotes(segs, main, tempo, loudest, nb);
+  return { beats, bars: fullBars, chords, sections: segs.map(s => ({ name: s.name, label: s.label, start: s.start, end: s.end, bars: s.bars, firstBar: s.firstBar, loop: s.loop, loopTimes: s.loopTimes, db: s.db, likely: ['Chorus', 'Verse', 'Intro', 'Outro', 'Bridge', 'Break'].includes(s.label) })), mainLoop: main, notes };
+}
+
+function condenseLoop(seq) {
+  // find the most common 4-bar (or 2-bar) pattern
+  const clean = seq.filter(c => c !== '–');
+  for (const L of [4, 2]) {
+    const counts = {};
+    for (let i = 0; i + L <= clean.length; i++) { const k = clean.slice(i, i + L).join(' | '); counts[k] = (counts[k] || 0) + 1; }
+    let best = null, bc = 0; for (const k in counts) if (counts[k] > bc) { bc = counts[k]; best = k; }
+    if (best && bc >= 2) {
+      // count non-overlapping occurrences
+      let times = 0; for (let i = 0; i + L <= clean.length;) { if (clean.slice(i, i + L).join(' | ') === best) { times++; i += L; } else i++; }
+      if (times >= 2) return { seq: best.split(' | '), times };
+    }
+  }
+  const uniq = []; clean.forEach(c => { if (uniq[uniq.length - 1] !== c) uniq.push(c); });
+  return { seq: uniq.slice(0, 8), times: 1 };
+}
+
+function arrangementNotes(segs, main, tempo, loudest, nb) {
+  const an = n => (String(n)[0] === '8' || n === 11 || n === 18) ? 'an' : 'a';
+  const out = [], f = s => { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, '0')}`; };
+  const barSec = 240 / tempo.bpm;
+  out.push(`At ${tempo.bpm} BPM one bar of four beats lasts ${barSec.toFixed(1)} seconds, and the song runs about ${nb} bars.`);
+  const first = segs[0];
+  if (first.label === 'Intro') out.push(`It opens with ${an(first.bars)} ${first.bars}-bar intro that is quieter than the rest, ending at ${f(first.end)}.`);
+  else out.push(`It starts straight into the main material, with no quiet intro.`);
+  const top = segs.reduce((a, b) => b.db > a.db ? b : a);
+  out.push(`The loudest section starts at ${f(top.start)}, in bar ${top.firstBar}.`);
+  const chorus = segs.filter(s => s.label === 'Chorus');
+  if (chorus.length > 1) out.push(`The section that sounds like a chorus comes back ${chorus.length} times, first at ${f(chorus[0].start)}.`);
+  for (let i = 1; i < segs.length - 1; i++) if (segs[i].db < segs[i - 1].db - 4 && !['Verse', 'Chorus'].includes(segs[i].label)) { out.push(`The energy drops at ${f(segs[i].start)} for ${segs[i].bars} bars before the music builds again.`); break; }
+  if (main.times >= 2) out.push(`The most repeated chord pattern is ${main.seq.join(', ')}, heard ${main.times} times.`);
+  const last = segs[segs.length - 1];
+  out.push(last.label === 'Outro' ? `It winds down with a quieter ${last.bars}-bar ending.` : `It ends without a quieter outro.`);
+  out.push(segs.length > 1 ? `Altogether the song has ${segs.length} sections.` : `No clear section changes were found, so the whole track keeps a similar sound and level.`);
+  return out;
+}
+
+// ---- Test song with a known structure (124 BPM, A minor) ----
+function synthTestSong() {
+  const bpm = 124, beat = 60 / bpm, bar = 4 * beat;
+  const plan = [
+    ['intro', 4, ['Am', 'Dm', 'E', 'Am'], 0.3, false, false],
+    ['verse', 8, ['Am', 'Dm', 'E', 'Am'], 0.6, true, false],
+    ['chorus', 8, ['F', 'G', 'C', 'E'], 1, true, true],
+    ['verse', 8, ['Am', 'Dm', 'E', 'Am'], 0.6, true, false],
+    ['chorus', 8, ['F', 'G', 'C', 'E'], 1, true, true],
+    ['break', 4, ['Dm', 'Dm', 'E', 'E'], 0.35, false, false],
+    ['chorus', 8, ['F', 'G', 'C', 'E'], 1, true, true],
+    ['outro', 4, ['Am', 'Dm', 'E', 'Am'], 0.25, false, false],
+  ];
+  const triad = { Am: [57, 60, 64], Dm: [62, 65, 69], E: [64, 68, 71], F: [65, 69, 72], G: [67, 71, 74], C: [60, 64, 67] };
+  const root = { Am: 45, Dm: 50, E: 40, F: 41, G: 43, C: 48 };
+  const totalBars = plan.reduce((a, p) => a + p[1], 0), len = Math.ceil(totalBars * bar * SR);
+  const y = new Float32Array(len), hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 * 2 - 1;
+  let b = 0;
+  for (const [, n, prog, gain, drums, hats] of plan) {
+    for (let j = 0; j < n; j++, b++) {
+      const ch = prog[j % 4], b0 = Math.floor(b * bar * SR), b1 = Math.floor((b + 1) * bar * SR);
+      for (let i = b0; i < b1 && i < len; i++) {
+        const t = (i - b0) / SR, env = Math.min(1, t * 20) * Math.min(1, (b1 - i) / SR * 20);
+        let s = 0; for (const m of triad[ch]) { const f = hz(m); s += 0.6 * Math.sin(2 * Math.PI * f * t) + 0.25 * Math.sin(4 * Math.PI * f * t); if (hats) s += 0.25 * Math.sin(Math.PI * f * t * 4.0 * 1.0005); }
+        y[i] += gain * 0.06 * s * env;
+        if (drums) { const fb = hz(root[ch]); y[i] += gain * 0.18 * (Math.sin(2 * Math.PI * fb * t) + 0.3 * Math.sin(4 * Math.PI * fb * t)) * env; }
+      }
+      if (drums) for (let q = 0; q < 4; q++) {
+        const k0 = Math.floor((b * 4 + q) * beat * SR);
+        for (let i = 0; i < SR * 0.35 && k0 + i < len; i++) { const t = i / SR; y[k0 + i] += gain * 0.55 * Math.sin(2 * Math.PI * (50 + 100 * Math.exp(-t * 25)) * t) * Math.exp(-t * 9); }
+        if (hats) { const h0 = Math.floor((b * 4 + q + 0.5) * beat * SR); for (let i = 0; i < SR * 0.05 && h0 + i < len; i++) y[h0 + i] += 0.12 * rnd() * Math.exp(-i / SR * 70); }
+      }
+    }
+  }
+  let mx = 0; for (let i = 0; i < len; i++) mx = Math.max(mx, Math.abs(y[i]));
+  for (let i = 0; i < len; i++) y[i] *= 0.89 / mx;
+  return y;
+}
+
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+const drop = $('drop'), statusEl = $('status'), bar = $('bar'), audio = $('audio');
+const hue = n => ((n - 1) * 30 + 200) % 360;
+const segColor = (n, l = 42) => `hsl(${hue(n)} 68% ${l}%)`;
+let samples = null, result = null, objectUrl = null;
+
+// disc label: 12 coloured wedges
+(function () {
+  const g = $('discLabel'); let html = '';
+  for (let n = 1; n <= 12; n++) {
+    const a0 = ((n % 12) * 30 - 15 - 90) * Math.PI / 180, a1 = a0 + Math.PI / 6;
+    const r = 30, cx = 66, cy = 66;
+    html += `<path d="M${cx} ${cy}L${cx + r * Math.cos(a0)} ${cy + r * Math.sin(a0)}A${r} ${r} 0 0 1 ${cx + r * Math.cos(a1)} ${cy + r * Math.sin(a1)}Z" fill="${segColor(n, 58)}"/>`;
+  }
+  g.innerHTML = html;
+})();
+
+function setBusy(on, msg) {
+  drop.classList.toggle('busy', on);
+  $('demoBtn').disabled = on; $('file').disabled = on;
+  statusEl.classList.remove('err'); statusEl.textContent = msg || '';
+  if (on) bar.style.width = '0%';
+}
+function fail(msg) { setBusy(false); statusEl.textContent = msg; statusEl.classList.add('err'); }
+const progress = p => { bar.style.width = Math.round(p * 100) + '%'; };
+
+async function decodeToMono(arrayBuf) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  let buf;
+  try { buf = await new Promise((res, rej) => { const p = ctx.decodeAudioData(arrayBuf, res, rej); if (p && p.then) p.then(res, rej); }); }
+  finally { ctx.close && ctx.close(); }
+  const dur = Math.min(buf.duration, 12 * 60);
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const off = new OAC(1, Math.ceil(dur * SR), SR);
+  const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start(0);
+  const out = await off.startRendering();
+  return { x: out.getChannelData(0), trimmed: buf.duration > dur, fullDuration: buf.duration };
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  if (file.size > 250 * 1024 * 1024) return fail('That file is over 250 MB. Try a shorter song or a compressed format like MP3.');
+  setBusy(true, `Reading ${file.name}…`);
+  try {
+    const ab = await file.arrayBuffer();
+    statusEl.textContent = 'Decoding the audio…';
+    let dec;
+    try { dec = await decodeToMono(ab); }
+    catch (e) { return fail('This file couldn’t be read as audio. Try an MP3, WAV or M4A file.'); }
+    statusEl.textContent = 'Finding the beat, key, chords and sections…';
+    const r = await analyze(dec.x, progress);
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(file);
+    show(file.name.replace(/\.[^.]+$/, ''), dec.x, r, objectUrl, dec.trimmed ? dec.fullDuration : 0);
+  } catch (e) { console.error(e); fail('Something went wrong while scanning. Try another file.'); }
+}
+
+async function runDemo() {
+  setBusy(true, 'Building a test song…');
+  await tick();
+  const x = synthTestSong();
+  statusEl.textContent = 'Finding the beat, key, chords and sections…';
+  const r = await analyze(x, progress);
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(new Blob([encodeWav(x)], { type: 'audio/wav' }));
+  show('Test song (made at 124 BPM in A minor)', x, r, objectUrl, 0);
+}
+
+const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, '0')}`; };
+const dbTxt = v => (v < 0 ? '−' : '') + Math.abs(Math.round(v));
+function meter(el, c, levels) {
+  const lvl = c >= levels[1] ? 3 : c >= levels[0] ? 2 : 1;
+  const word = ['low', 'medium', 'high'][lvl - 1];
+  el.innerHTML = `<b aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= lvl ? 'on' : ''}"></i>`).join('')}</b>Confidence: ${word}`;
+  return lvl;
+}
+
+function show(title, x, r, url, trimmedFrom) {
+  samples = x; result = r;
+  setBusy(false, 'Done. Your results are below.');
+  $('resTitle').textContent = title;
+  // tempo
+  $('sTempo').innerHTML = `${r.tempo.bpm}<small>BPM</small>`;
+  const tl = meter($('mTempo'), r.tempo.confidence, [0.45, 0.7]);
+  $('nTempo').textContent = tl === 1 ? 'No steady beat found, so treat this as a rough guess.' : `It could also feel like ${r.tempo.alt} BPM.`;
+  // key
+  $('sKey').textContent = r.key.name;
+  const kc = r.key.confidence >= 0.5 ? 1 : (r.key.confidence >= 0.1 || r.key.fit >= 0.75) ? 0.6 : 0;
+  const kl = meter($('mKey'), kc, [0.5, 0.9]);
+  $('nKey').textContent = kl === 3 ? `Camelot code ${r.key.camelot}.` : `Camelot code ${r.key.camelot}. Runner-up: ${r.key.runnerUp.name}.`;
+  // length & loudness
+  $('sLen').textContent = fmt(r.duration);
+  $('nLen').textContent = trimmedFrom ? `Only the first 12 minutes of ${fmt(trimmedFrom)} were scanned.` : `${Math.round(r.duration * r.tempo.bpm / 60)} beats at this tempo.`;
+  $('sLoud').innerHTML = `${dbTxt(r.energy.avgDb)}<small>dB</small>`;
+  $('nLoud').textContent = `Average level. Peaks reach ${dbTxt(r.energy.peakDb)} dB. Most pop releases sit around −14 to −8.`;
+  // mixes
+  $('mixTitle').textContent = `Keys that mix well with ${r.key.camelot}`;
+  $('mixes').innerHTML = r.compatible.map(k => `<li><span class="chip" style="background:${segColor(k.num, 40)}">${k.camelot}</span><span><span class="nm">${k.name}</span><br><span class="why">${k.why}</span></span></li>`).join('');
+  drawWheel(r.key, r.compatible);
+  const names = ['quiet', 'medium', 'loud'];
+  $('secText').textContent = 'Energy sections: ' + r.energy.segments.map(s => `${names[s.level]} from ${fmt(s.start)} to ${fmt(s.end)}`).join(', ') + '.';
+  renderStructure(r);
+  audio.pause(); audio.src = url; $('playBtn').textContent = 'Play';
+  const res = $('results'); res.classList.add('show');
+  drawWave();
+  res.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  $('resTitle').setAttribute('tabindex', '-1'); $('resTitle').focus({ preventScroll: true });
+}
+
+
+const SEC_VAR = { Chorus: '--high', Verse: '--mid', Intro: '--low', Outro: '--low', Break: '--teal', Bridge: '--teal', 'Whole track': '--mid' };
+function cssColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function secColor(label) { return cssColor(SEC_VAR[label] || '--pink'); }
+function textOn(hex) {
+  const m = hex.replace('#', ''); if (m.length < 6) return '#fff';
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(m.substr(i, 2), 16) / 255).map(c => c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4));
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 0.36 ? '#1E1631' : '#FFFFFF';
+}
+function renderStructure(r) {
+  const st = r.structure, row = $('secRow'), list = $('secList'), notes = $('notes');
+  const has = !!(st && st.sections && st.sections.length);
+  $('secLane').hidden = !has; $('notesLane').hidden = !has; row.hidden = !has;
+  $('structCaveat').hidden = !(has && r.tempo.confidence < 0.45);
+  if (!has) { row.innerHTML = ''; list.innerHTML = ''; notes.innerHTML = ''; return; }
+  const d = r.duration;
+  row.innerHTML = st.sections.map((q, i) => {
+    const c = secColor(q.label), left = q.start / d * 100, w = (q.end - q.start) / d * 100;
+    return `<button type="button" class="sec-block" data-i="${i}" style="left:calc(${left}% + 1px);width:calc(${w}% - 2px);background:${c};color:${textOn(c)}" title="${q.name}, ${fmt(q.start)} to ${fmt(q.end)}" aria-label="Play ${q.name}, from ${fmt(q.start)}">${q.name}</button>`;
+  }).join('');
+  list.innerHTML = st.sections.map((q, i) => {
+    const likely = q.likely && q.label !== 'Whole track' ? '<em>likely</em>' : '';
+    const chips = q.loop.length ? q.loop.map(c => `<span>${c}</span>`).join('') + (q.loopTimes > 1 ? `<small>played ${q.loopTimes} times</small>` : '') : '<small>No clear chords</small>';
+    return `<li><button type="button" data-i="${i}"><span class="sn"><i style="background:${secColor(q.label)}"></i>${q.name} ${likely}</span><span class="st num">${fmt(q.start)} to ${fmt(q.end)}<br>Bars ${q.firstBar} to ${q.firstBar + q.bars - 1}</span><span class="chords">${chips}</span></button></li>`;
+  }).join('');
+  notes.innerHTML = st.notes.map(n => `<li>${n}</li>`).join('');
+  const go = e => { const b = e.target.closest('[data-i]'); if (!b) return; const q = st.sections[+b.dataset.i]; if (!audio.duration) return; audio.currentTime = q.start; audio.play().catch(() => {}); drawWave(); updTime(); };
+  row.onclick = go; list.onclick = go;
+}
+function nowAt(t) {
+  const st = result && result.structure; if (!st) return '';
+  const sec = st.sections.find(q => t >= q.start && t < q.end);
+  const ch = st.chords.find(c => t >= c.start && t < c.end);
+  return `${sec ? sec.name : ''}${ch && ch.name !== '–' ? ` <span aria-hidden="true">/</span> chord <b>${ch.name}</b>` : ''}`;
+}
+
+function arcPath(r0, r1, a0, a1) {
+  const p = (r, a) => `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`;
+  return `M${p(r1, a0)}A${r1} ${r1} 0 0 1 ${p(r1, a1)}L${p(r0, a1)}A${r0} ${r0} 0 0 0 ${p(r0, a0)}Z`;
+}
+function drawWheel(key, compat) {
+  const svg = $('wheel'); const cs = getComputedStyle(document.documentElement);
+  const ink = cs.getPropertyValue('--ink').trim(), surf = cs.getPropertyValue('--surface').trim(), muted = cs.getPropertyValue('--muted').trim();
+  const isCompat = (n, l) => compat.some(k => k.num === n && k.letter === l);
+  let h = `<desc id="wheelDesc">Camelot wheel with ${key.name} (${key.camelot}) highlighted, and the keys that mix with it marked.</desc><circle r="206" fill="${surf}"/>`;
+  for (const [letter, r0, r1] of [['B', 142, 202], ['A', 82, 140]]) {
+    for (let n = 1; n <= 12; n++) {
+      const c = ((n % 12) * 30) * Math.PI / 180, a0 = c - Math.PI / 12 + 0.012, a1 = c + Math.PI / 12 - 0.012;
+      const sel = n === key.num && letter === key.letter, comp = isCompat(n, letter);
+      const op = sel ? 1 : comp ? 0.62 : getComputedStyle(document.documentElement).getPropertyValue('--wheel-dim');
+      const k = camelotToKey(n, letter);
+      h += `<path d="${arcPath(r0, r1, a0, a1)}" fill="${segColor(n, sel ? 42 : 50)}" fill-opacity="${op}" ${sel ? `stroke="${ink}" stroke-width="3"` : ''}><title>${n}${letter}: ${k.name}</title></path>`;
+      const rm = (r0 + r1) / 2, tx = rm * Math.sin(c), ty = -rm * Math.cos(c);
+      const tc = sel ? '#fff' : comp ? ink : muted;
+      h += `<text x="${tx.toFixed(1)}" y="${(ty - 3).toFixed(1)}" text-anchor="middle" font-size="${letter === 'B' ? 15 : 13}" font-weight="700" fill="${tc}">${n}${letter}</text>`;
+      h += `<text x="${tx.toFixed(1)}" y="${(ty + 11).toFixed(1)}" text-anchor="middle" font-size="${letter === 'B' ? 10.5 : 9.5}" fill="${tc}" fill-opacity=".9">${NOTES[k.tonic]}${letter === 'A' ? 'm' : ''}</text>`;
+    }
+  }
+  h += `<circle r="78" fill="${surf}"/>`;
+  h += `<text y="-4" text-anchor="middle" font-size="42" font-weight="800" fill="${ink}" style="font-family:'Bricolage Grotesque',sans-serif">${key.camelot}</text>`;
+  h += `<text y="24" text-anchor="middle" font-size="15" fill="${muted}">${key.name}</text>`;
+  svg.innerHTML = h;
+}
+
+// waveform
+const canvas = $('wave'), cx2 = canvas.getContext('2d');
+function drawWave() {
+  if (!samples || !result) return;
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  cx2.setTransform(dpr, 0, 0, dpr, 0, 0); cx2.clearRect(0, 0, w, h);
+  const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
+  const lvlColor = [v('--low'), v('--mid'), v('--high')];
+  const dur = result.duration, strip = 10, top = 0, wh = h - strip - 8, mid = top + wh / 2;
+  // section strip
+  for (const s of result.energy.segments) {
+    const x0 = s.start / dur * w, x1 = s.end / dur * w;
+    cx2.fillStyle = lvlColor[s.level]; cx2.fillRect(x0 + 1, h - strip, Math.max(1, x1 - x0 - 2), strip);
+  }
+  const playedX = (audio.duration ? audio.currentTime / audio.duration : 0) * w;
+  const step = 3, per = samples.length / w;
+  let peak = 0; for (let i = 0; i < samples.length; i += 64) peak = Math.max(peak, Math.abs(samples[i]));
+  peak = peak || 1;
+  for (let x = 0; x < w; x += step) {
+    let mx = 0; const a = Math.floor(x * per), b = Math.min(samples.length, Math.floor((x + step) * per));
+    for (let i = a; i < b; i += 8) { const s = Math.abs(samples[i]); if (s > mx) mx = s; }
+    const hh = Math.max(1.5, (mx / peak) * (wh / 2));
+    cx2.fillStyle = x < playedX ? v('--accent') : v('--muted'); cx2.globalAlpha = x < playedX ? 1 : 0.45;
+    cx2.fillRect(x, mid - hh, step - 1, hh * 2);
+  }
+  cx2.globalAlpha = 1;
+  if (audio.duration) { cx2.fillStyle = v('--ink'); cx2.fillRect(playedX - 1, 0, 2, wh); }
+}
+new ResizeObserver(() => drawWave()).observe(canvas);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { drawWave(); if (result) { drawWheel(result.key, result.compatible); renderStructure(result); } });
+
+function seekTo(frac) { if (!audio.duration) return; audio.currentTime = Math.max(0, Math.min(1, frac)) * audio.duration; drawWave(); updTime(); }
+canvas.addEventListener('click', e => { const r = canvas.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width); });
+canvas.addEventListener('keydown', e => {
+  if (!audio.duration) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); seekTo((audio.currentTime + (e.key === 'ArrowRight' ? 5 : -5)) / audio.duration); }
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); togglePlay(); }
+});
+function updTime() { $('time').textContent = `${fmt(audio.currentTime || 0)} / ${fmt(audio.duration || (result ? result.duration : 0))}`; $('now').innerHTML = nowAt(audio.currentTime || 0); }
+function togglePlay() { if (audio.paused) audio.play().catch(() => {}); else audio.pause(); }
+$('playBtn').addEventListener('click', togglePlay);
+audio.addEventListener('play', () => { $('playBtn').textContent = 'Pause'; loop(); });
+audio.addEventListener('pause', () => { $('playBtn').textContent = 'Play'; });
+audio.addEventListener('ended', () => { $('playBtn').textContent = 'Play'; });
+audio.addEventListener('loadedmetadata', () => { updTime(); drawWave(); });
+function loop() { drawWave(); updTime(); if (!audio.paused) requestAnimationFrame(loop); }
+
+// tap tempo
+let taps = [];
+function tap() {
+  const now = performance.now();
+  if (taps.length && now - taps[taps.length - 1] > 2500) taps = [];
+  taps.push(now); if (taps.length > 9) taps.shift();
+  const b = $('tapBtn'); b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 90);
+  if (taps.length < 4) { $('tapOut').textContent = `${4 - taps.length} more`; return; }
+  const gaps = []; for (let i = 1; i < taps.length; i++) gaps.push(taps[i] - taps[i - 1]);
+  const avg = gaps.reduce((a, c) => a + c, 0) / gaps.length;
+  $('tapOut').textContent = `${Math.round(60000 / avg)} BPM`;
+}
+$('tapBtn').addEventListener('click', tap);
+document.addEventListener('keydown', e => {
+  if ((e.key === 't' || e.key === 'T') && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea|select/i.test(e.target.tagName) && $('results').classList.contains('show')) tap();
+});
+
+// inputs
+$('file').addEventListener('change', e => { handleFile(e.target.files[0]); e.target.value = ''; });
+$('demoBtn').addEventListener('click', runDemo);
+$('againBtn').addEventListener('click', () => { audio.pause(); document.getElementById('scan').scrollIntoView({ block: 'start' }); $('chooseBtn').focus(); });
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleFile(f); });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f && !drop.contains(e.target)) handleFile(f); });
+$('chooseBtn').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); } });
+$('chooseBtn').tabIndex = 0;
+</script>
+</body>
+</html>
