@@ -887,6 +887,10 @@
     .soc.drop .di, .soc.drop .dd { animation: none; }
   }
 
+  .soc-row.drops.on-slide { justify-content: flex-end; max-width: 380px; padding-top: 4px; }
+  @media (max-width: 700px) { .soc-row.drops.on-slide { justify-content: center; flex-wrap: nowrap; gap: 6px; }
+                              .on-slide .soc.drop { width: 34px; height: 34px; } .on-slide .soc.drop svg { width: 15px; height: 15px; } }   /* one line on phones */
+
   /* FOOTER: the icon row sits just above the copyright line */
   footer.sd-foot { display: flex; flex-direction: column; align-items: center; gap: 14px; }
   footer.sd-foot p { margin: 0; }
@@ -907,7 +911,7 @@
     <!-- Sound is OFF until the visitor turns it on. Browsers block sound that starts by itself. -->
     <button class="pill" id="sound" aria-pressed="false" data-magnetic data-hover><span class="led"></span><span id="soundLabel">Sound off</span></button>
     <a class="pill" href="#contact" data-magnetic data-hover>Contact</a>
-                                <!-- MORE MENU START -->
+                                            <!-- MORE MENU START -->
     <div class="more">
       <button class="pill more-btn" id="moreBtn" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu" data-hover>More <span class="chev" aria-hidden="true">▾</span></button>
       <nav class="more-menu" id="moreMenu" role="menu" aria-label="Pages and links" hidden>
@@ -3176,7 +3180,14 @@ document.querySelectorAll('a[data-u][data-d]').forEach(a => {
   });
   // Footer drops fall in each time the footer comes into view
   const row = document.querySelector('.soc-row.drops');
-  if (row && 'IntersectionObserver' in window)
+  if (row && row.closest('.slide')) {
+    // slide deck (ai.html): every slide is stacked on the same fixed screen, so check a few times a second
+    // whether the middle of the row is actually showing (= the THANK YOU slide is up)
+    setInterval(() => {
+      const r = row.getBoundingClientRect(), e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      row.classList.toggle('in', !!e && row.contains(e));
+    }, 250);
+  } else if (row && 'IntersectionObserver' in window)
     new IntersectionObserver(es => es.forEach(e => row.classList.toggle('in', e.isIntersecting)), { threshold: 0.6 }).observe(row);
   else if (row) row.classList.add('in');
   const btn = document.getElementById('moreBtn'), menu = document.getElementById('moreMenu');
