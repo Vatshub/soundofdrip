@@ -2046,6 +2046,7 @@ function drum() {
   depthEls.forEach(el => {
     const r = el.getBoundingClientRect();
     if (r.bottom < -200 || r.top > vh + 200) return;                     // off screen: nothing to do
+    if (r.height > vh * 1.2) { if (el.style.transform) el.style.transform = ''; return; }   // too tall to tilt (e.g. the Shows photo grid): keep it flat so no photo balloons or vanishes
     const p = clamp((r.top + r.height / 2 - vh / 2) / (vh * 0.62), -1.5, 1.5);   // -1 top edge, 0 centre, +1 bottom edge
     el.style.transform = `perspective(1100px) translateZ(${(-210 * p * p).toFixed(1)}px) rotateX(${(-28 * p).toFixed(2)}deg)`;
   });
