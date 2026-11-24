@@ -399,8 +399,11 @@
   .more-btn .chev { display: inline-block; transition: transform .25s; font-size: .7em; }
   .more-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
   .more-menu { position: absolute; right: 0; top: calc(100% + 10px); min-width: 210px; padding: 8px; z-index: 60;
-               background: rgba(8, 13, 20, .97); border: 1px solid var(--line); border-radius: 16px;
-               backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 18px 50px rgba(0,0,0,.45);
+               /* frosted glass: a see-through dark tint, a strong blur of whatever is behind, a thin light edge and a soft sheen */
+               background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02) 55%), rgba(14, 18, 26, .45);
+               border: 1px solid rgba(255,255,255,.16); border-radius: 16px;
+               backdrop-filter: blur(22px) saturate(160%); -webkit-backdrop-filter: blur(22px) saturate(160%);
+               box-shadow: 0 18px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
                display: grid; opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; }
   .more-menu.open { opacity: 1; transform: none; }
   .more-menu[hidden] { display: none; }
