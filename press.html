@@ -673,6 +673,82 @@
   /* Hero press button: sits a little below the hero line */
   .hero-press { margin-top: 3.4vh; background: rgba(4, 6, 10, 0.35); backdrop-filter: blur(6px); }
   /* Contact press link: small underlined text under the main button, on its own line */
+  /* Card pictures (AI chapter): each picture sits INSIDE a water drop, like Drip's photo in the big 3D drop.
+     The drop wobbles like liquid, carries a white glint and a wet rim in the chapter colour, swells when the
+     music's bass hits (--bass, set by the script), lets a single drip fall every few seconds, and swells and
+     wobbles faster when you point at the card. Swap a picture by changing the url() on its <span class="pimg">. */
+  .pdrop {
+    position: absolute; top: 16px; right: 58px; width: 46%; max-width: 128px; aspect-ratio: 1;
+    border-radius: 50% 50% 50% 50% / 56% 56% 44% 44%;            /* a little heavier at the bottom, like a real drop */
+    overflow: hidden; isolation: isolate; pointer-events: none;
+    scale: calc(1 + var(--bass, 0) * 0.08);
+    animation: drop-wobble 4.2s ease-in-out infinite;
+    transition: scale .5s var(--ease), translate .5s var(--ease);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .45), 0 0 26px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .pdrop .pimg {                                                    /* the picture, slightly magnified like through a lens */
+    position: absolute; inset: -8%; background-size: cover; background-position: center;
+    animation: drop-lens 4.2s ease-in-out infinite;
+  }
+  .pdrop .pglint {                                                  /* the wet look on top of the picture */
+    position: absolute; inset: 0; border-radius: inherit;
+    background:
+      radial-gradient(circle at 32% 24%, rgba(255,255,255,.9) 0 5%, rgba(255,255,255,.25) 9%, transparent 22%),   /* the glint */
+      radial-gradient(circle at 70% 82%, rgba(255,255,255,.18), transparent 30%);                                 /* light caught at the bottom */
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255, 255, 255, .35),                                     /* thin wet rim */
+      inset 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent),              /* rim lit in the chapter colour */
+      inset -10px -14px 22px rgba(0, 0, 0, .45);                                      /* the far side of the drop in shade */
+  }
+  .pdrip {                                                          /* one drip that gathers under the drop and falls */
+    position: absolute; left: 50%; bottom: 2%; width: 7px; height: 9px; margin-left: -3.5px;
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--accent) 70%, #fff) 60%);
+    opacity: 0; animation: drop-drip 5.5s ease-in infinite;
+  }
+  .card:nth-child(2n) .pdrip { animation-delay: 2.1s; }   /* stagger the drips so the cards don't drip together */
+  .card:nth-child(3n) .pdrip { animation-delay: 3.6s; }
+  .card:hover .pdrop { scale: calc(1.1 + var(--bass, 0) * 0.08); translate: 0 -3px; animation-duration: 1.6s; }
+  .card:hover .pdrop .pimg { animation-duration: 1.6s; }
+  @keyframes drop-wobble {      /* the outline sways like liquid */
+    0%, 100% { border-radius: 50% 50% 50% 50% / 56% 56% 44% 44%; }
+    33%      { border-radius: 54% 46% 52% 48% / 52% 60% 40% 48%; }
+    66%      { border-radius: 47% 53% 48% 52% / 60% 52% 48% 40%; }
+  }
+  @keyframes drop-lens {        /* the picture inside shifts slightly against the outline, like refraction */
+    0%, 100% { transform: scale(1) translate(0, 0); }
+    50%      { transform: scale(1.05) translate(-2%, 1.5%); }
+  }
+  @keyframes drop-drip {        /* swell under the drop, let go, fall and fade */
+    0%, 62%  { opacity: 0; transform: translateY(0) scale(.4); }
+    72%      { opacity: 1; transform: translateY(2px) scale(1); }
+    100%     { opacity: 0; transform: translateY(60px) scale(.8); }
+  }
+  @media (prefers-reduced-motion: reduce) { .pdrop, .pdrop .pimg, .pdrip { animation: none; } }
+  .card .num, .card > div { position: relative; }      /* keep the words above the picture */
+  .card .go { z-index: 1; }                            /* the arrow stays in its corner, above the picture */
+  /* Six cards (the AI chapter): two per row (Drip's pick, 20 Nov), taller than the other chapters' cards,
+     so the picture drop is big enough to show each picture clearly */
+  .cards.six { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .cards.six .card { min-height: 360px; }
+  .cards.six .pdrop { top: 18px; right: 58px; width: 54%; max-width: 230px; }
+  @media (max-width: 700px) {
+    .cards.six { gap: 10px; }
+    .cards.six .card { min-height: 300px; padding: 14px; }
+    .cards.six .pdrop { top: 40px; left: 50%; right: auto; margin-left: -31%; width: 62%; }   /* centred under the number and arrow */
+  }
+  /* The AI chapter's two buttons, stacked: the rectangular agents button on top, the big round one below */
+  .ai-btns { margin-top: 5vh; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .ai-btns .cta { margin-top: 0; }
+  .agents-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 14px 24px; border-radius: 12px;                 /* a rectangle with soft corners, not a pill */
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    background: rgba(8, 13, 20, 0.55); color: var(--ink); font-weight: 600; font-size: 0.95rem;
+    transition: background .3s, border-color .3s, box-shadow .4s; will-change: transform;
+  }
+  .agents-btn:hover { background: color-mix(in srgb, var(--accent) 18%, rgba(8, 13, 20, 0.55)); border-color: var(--accent); box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .agents-btn:active { scale: 0.97; }
   .finale-press { display: block; margin-top: 2.2vh; font-size: 0.85rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; transition: color .3s; }
   .finale-press:hover { color: var(--ink); }
   .cta {
@@ -720,7 +796,7 @@
   .awards { margin-top: 5vh; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
   .award { border-radius: 16px; overflow: hidden; background: #0d0f14; border: 1px solid var(--line); transition: border-color .3s; }
   .award:hover { border-color: var(--accent); }
-  .award img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+  .award img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: contain; background: #07090d; }   /* whole item visible, never cropped */
   .award figcaption { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 3px; }
   .award b { font-size: 1.05rem; } .award small { color: var(--muted); }
   .kind { align-self: flex-start; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
@@ -767,19 +843,19 @@
     <div class="scroll-hint">Scroll</div>
   </section>
 
-  <!-- ARTICLES: newest first. Each row opens the original article in a new tab. -->
+  <!-- ARTICLES: in Drip's chosen order. Each row opens the original article in a new tab. -->
   <section class="chapter" id="articles" data-chapter data-accent="1.0,0.81,0.36">
     <div class="col" data-reveal>
       <p class="kicker">In the news</p>
       <h2 data-split>Articles</h2>
       <ol class="news gear-wet">
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">01</span><span class="o">Outlet name<small>2026</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">02</span><span class="o">Outlet name<small>2026</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">03</span><span class="o">Outlet name<small>2025</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">04</span><span class="o">Outlet name<small>2025</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">05</span><span class="o">Outlet name<small>2024</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">06</span><span class="o">Outlet name<small>2024</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
-        <li><a href="#" target="_blank" rel="noopener" data-hover><span class="n">07</span><span class="o">Outlet name<small>2023</small></span><span class="h">PLACEHOLDER · Headline of the article goes here</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://www.hindustantimes.com/brand-post/meet-prateek-vats-aka-drip-an-internationally-nominated-music-producer-and-dj-101619785564963.html" target="_blank" rel="noopener" data-hover><span class="n">01</span><span class="o">Hindustan Times</span><span class="h">Meet Prateek Vats aka DRIP, an internationally nominated music producer and DJ</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://edtimes.in/drip-prateek-vats-counts-down-the-arrival-of-2021-at-the-himalayan-village-resort-for-kasol-music-festivals-fifth-edition/" target="_blank" rel="noopener" data-hover><span class="n">02</span><span class="o">ED Times</span><span class="h">DRIP (Prateek Vats) counts down the arrival of 2021 at The Himalayan Village Resort for Kasol Music Festival&#x27;s fifth edition</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://www.ibtimes.co.in/sailor-turned-music-producer-dj-dripshares-about-his-new-beginnings-817392" target="_blank" rel="noopener" data-hover><span class="n">03</span><span class="o">IBTimes India</span><span class="h">Sailor-turned music producer and DJ DRIP shares about his new beginnings</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://www.mid-day.com/entertainment/bollywood-news/article/dj-prateek-vats-aka-drip-is-all-set-to-conquer-2020-with-an-impressive-lineup-22651245" target="_blank" rel="noopener" data-hover><span class="n">04</span><span class="o">Mid-day</span><span class="h">DJ Prateek Vats aka DRIP is all set to conquer 2020 with an impressive lineup</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://nationwideawards.org/winners_list_view/Prateek-Vats-Drip-has-been-recognized-as-Best-Emerging-DJ-Music-Producer-of-the-Year-2022-Dehra-Dun-" target="_blank" rel="noopener" data-hover><span class="n">05</span><span class="o">Nation Wide Awards</span><span class="h">Prateek Vats (DRIP) recognised as Best Emerging DJ &amp; Music Producer of the Year 2022, Dehra Dun</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://businessmint.in/events/business-mint-nationwide-awards-2022-new-delhi" target="_blank" rel="noopener" data-hover><span class="n">06</span><span class="o">Business Mint</span><span class="h">Business Mint Nationwide Awards 2022, New Delhi</span><span class="go" aria-hidden="true">→</span></a></li>
+        <li><a href="https://www.iudehradun.edu.in/IUDNACC/5.3.3%20Sports%20and%20Cultural%20activities%20and%20report.pdf" target="_blank" rel="noopener" data-hover><span class="n">07</span><span class="o">ICFAI University Dehradun</span><span class="h">UTSAV&#x27;19: DRIP plays the EDM Night alongside IKKA and RS Chauhan</span><span class="go" aria-hidden="true">→</span></a></li>
       </ol>
     </div>
   </section>
@@ -787,32 +863,35 @@
   <!-- AWARDS: a photo of each certificate or trophy, with what it was for -->
   <section class="chapter" id="awards" data-chapter data-accent="1.0,0.62,0.28">
     <div class="col" data-reveal>
-      <p class="kicker">Nominations &amp; certificates</p>
-      <h2 data-split>Awards</h2>
+      <p class="kicker">Recognition &amp; print</p>
+      <h2 data-split>Press, Awards &amp; Nominations</h2>
       <div class="awards">
-        <figure class="award gear-wet"><img src="media/press/award_01.webp" alt="PLACEHOLDER: Award name, 2025" width="900" height="680" loading="lazy"><figcaption><span class="kind won">Won</span><b>Award name</b><small>Category · 2025</small></figcaption></figure>
-        <figure class="award gear-wet"><img src="media/press/award_02.webp" alt="PLACEHOLDER: Award name, 2024" width="900" height="680" loading="lazy"><figcaption><span class="kind">Nominated</span><b>Award name</b><small>Category · 2024</small></figcaption></figure>
-        <figure class="award gear-wet"><img src="media/press/award_03.webp" alt="PLACEHOLDER: Certificate name, 2023" width="900" height="680" loading="lazy"><figcaption><span class="kind">Certificate</span><b>Certificate name</b><small>Given by · 2023</small></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_01.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_01.webp" alt="Nationwide Awards: Best Emerging DJ &amp; Music Producer of the Year, Dehra Dun" width="664" height="619" loading="lazy"></a><figcaption><span class="kind won">Won</span><b>Nationwide Awards: Best Emerging DJ &amp; Music Producer of the Year, Dehra Dun</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_02.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_02.webp" alt="Nationwide Awards: on stage" width="1400" height="933" loading="lazy"></a><figcaption><span class="kind won">Won</span><b>Nationwide Awards: on stage</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_03.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_03.webp" alt="Nationwide Awards: red carpet" width="933" height="1400" loading="lazy"></a><figcaption><span class="kind won">Won</span><b>Nationwide Awards: red carpet</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_04.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_04.webp" alt="HT City Unwind: appreciation for a stellar performance, JLN Stadium" width="1024" height="713" loading="lazy"></a><figcaption><span class="kind">Certificate</span><b>HT City Unwind: appreciation for a stellar performance, JLN Stadium</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_05.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_05.webp" alt="Fox Story India: India&#x27;s 100 Under 40, Artist" width="920" height="1400" loading="lazy"></a><figcaption><span class="kind">Certificate</span><b>Fox Story India: India&#x27;s 100 Under 40, Artist</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_06.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_06.webp" alt="Fox Story India: India&#x27;s 100 Under 40, released via ANI, Business Standard and Mid-day" width="1064" height="1400" loading="lazy"></a><figcaption><span class="kind">In print</span><b>Fox Story India: India&#x27;s 100 Under 40, released via ANI, Business Standard and Mid-day</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_07.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_07.webp" alt="EDM Droid: Asia&#x27;s Top 25 DJs" width="960" height="960" loading="lazy"></a><figcaption><span class="kind">Nominated</span><b>EDM Droid: Asia&#x27;s Top 25 DJs</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_08.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_08.webp" alt="#GIBF, Asia&#x27;s Biggest Beverage &amp; Music Festival, JLN Stadium: lineup in Hindustan Times" width="642" height="960" loading="lazy"></a><figcaption><span class="kind">In print</span><b>#GIBF, Asia&#x27;s Biggest Beverage &amp; Music Festival, JLN Stadium: lineup in Hindustan Times</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_09.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_09.webp" alt="#GIBF, Asia&#x27;s Biggest Beverage &amp; Music Festival, JLN Stadium: lineup in Hindustan Times" width="810" height="672" loading="lazy"></a><figcaption><span class="kind">In print</span><b>#GIBF, Asia&#x27;s Biggest Beverage &amp; Music Festival, JLN Stadium: lineup in Hindustan Times</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_10.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_10.webp" alt="Dainik Jagran: ICFAI University fest, with Ikka Singh and RS Chauhan" width="960" height="1280" loading="lazy"></a><figcaption><span class="kind">In print</span><b>Dainik Jagran: ICFAI University fest, with Ikka Singh and RS Chauhan</b></figcaption></figure>
+        <figure class="award gear-wet"><a href="media/press/award_11.webp" target="_blank" rel="noopener" data-hover><img src="media/press/award_11.webp" alt="Dainik Jagran: UTSAV, students dance to Ikka, RS Chauhan and Prateek Vats" width="456" height="744" loading="lazy"></a><figcaption><span class="kind">In print</span><b>Dainik Jagran: UTSAV, students dance to Ikka, RS Chauhan and Prateek Vats</b></figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- VIDEOS: a short silent loop plays while on screen; "Tap for sound" loads the full video with sound.
-       PLACEHOLDER files: swap data-loop, data-full and poster. -->
+       Files are listed in VIDEOS in build_inner.py. -->
   <section class="chapter" id="camera" data-chapter data-accent="0.98,0.46,0.36">
     <div class="col" data-reveal>
       <p class="kicker">Interviews &amp; features</p>
       <h2 data-split>On camera</h2>
       <div class="vids">
         <figure class="vid gear-wet">
-          <div class="screen"><video data-loop="media/press/press_video_01_loop.mp4" data-full="media/press/press_video_01_full.mp4" poster="media/press/press_video_01_poster.jpg" muted playsinline loop preload="none" aria-label="Press video 1"></video>
+          <div class="screen"><video data-loop="media/press/press_video_01_loop.mp4" data-full="media/press/press_video_01_full.mp4" poster="media/press/press_video_01_poster.jpg" muted playsinline loop preload="none" aria-label="Nationwide Awards 2022: on stage and the red-carpet interview"></video>
           <button class="tap" aria-pressed="false" data-hover><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><span>Tap for sound</span></button></div>
-          <figcaption>PLACEHOLDER · What this video is, outlet, year</figcaption>
-        </figure>
-        <figure class="vid gear-wet">
-          <div class="screen"><video data-loop="media/press/press_video_02_loop.mp4" data-full="media/press/press_video_02_full.mp4" poster="media/press/press_video_02_poster.jpg" muted playsinline loop preload="none" aria-label="Press video 2"></video>
-          <button class="tap" aria-pressed="false" data-hover><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><span>Tap for sound</span></button></div>
-          <figcaption>PLACEHOLDER · What this video is, outlet, year</figcaption>
+          <figcaption>Nationwide Awards 2022: on stage and the red-carpet interview</figcaption>
         </figure>
       </div>
     </div>
@@ -1368,7 +1447,8 @@ function scrollToS() {
    ===================================================================== */
 // The mix the whole site plays: The Drip Set. The DJ console in the Music chapter (PART M) plays it too,
 // and the 3D water dances to it. If this is left empty (''), a built-in demo beat plays instead.
-// PLACEHOLDER: media/music/drip_set.mp3 is a synthesised stand-in; replace that file with Drip's real mix.
+// STAND-IN until The Drip Set is ready: drip_set.mp3 = Drip's unreleased clip + his 8 beats (24 Nov 2026).
+// When the real set is done, replace that file (same name) and update CUES in PART M1.
 const TRACK_URL = 'media/music/drip_set.mp3';
 
 let audio = null;          // the browser's sound engine (created on the first click of the Sound button)
@@ -1378,6 +1458,7 @@ let spectrum = null;       // the analyser's measurements land in this list
 let trackEl = null;        // your audio file, if TRACK_URL is set
 let noiseBuffer = null;    // a second of hiss, used to make the hi-hat sound
 let soundOn = false, beatTimer = 0, nextStepTime = 0, stepIndex = 0;
+let lastBassCss = '';                 // the last bass value handed to CSS (only updated when it changes)
 const levels = [0, 0, 0];  // bass, mids, treble right now (0 to 1): these drive the visuals
 
 // The mix is prepared straight away (only its length is fetched, not the whole file), so the DJ console
@@ -1667,6 +1748,8 @@ function frame(t) {
   // 0) Listen to the music (all zeros while sound is off)
   readLevels();
   const [bass, mids, treble] = levels;
+  const bassCss = bass.toFixed(2);                      // the card drops swell on the bass too (CSS --bass)
+  if (bassCss !== lastBassCss) { document.documentElement.style.setProperty('--bass', bassCss); lastBassCss = bassCss; }
   soundLed.style.transform = `scale(${(1 + bass * 1.2).toFixed(2)})`;   // the little light on the Sound button pulses too
 
   // 1) Scroll -> s, smoothed

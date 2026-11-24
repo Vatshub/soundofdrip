@@ -874,7 +874,7 @@
         </div>
 
         <!-- 02 UNRELEASED as a cassette. A mystery teaser: no title on purpose (decided 19 Nov).
-             PLACEHOLDER audio: swap the file in data-src for Drip's real teaser clip. -->
+             Drip's real unreleased clip (24 Nov 2026), played whole. -->
         <div class="gear cassette gear-wet" id="cassette" data-src="media/music/unreleased_teaser.mp3" data-tilt>
           <div class="k-body">
             <span class="k-label"><b>UNRELEASED</b><small>??? · side A</small></span>
@@ -945,7 +945,8 @@
       <!-- =========== LIVE: four performance clips ===========
            One big featured clip and three smaller ones. Each plays a short silent loop when it scrolls into view
            and pauses when it leaves; "Tap for sound" loads the full video with sound and steps the site's music aside.
-           PLACEHOLDER videos: swap data-loop, data-full and poster for Drip's real files. -->
+           Drip's own edits (24 Nov 2026): live_01 = wide featured edit (2:39, two-pass ~2 Mbps to stay near 42 MB),
+           live_02 to 04 = his three 9:16 edits (r1, r2, r3). Loops = 10 s from 2 s in, silent. -->
       <div class="live">
         <p class="pipe-label">Live · on stage</p>
         <div class="live-grid">
@@ -1055,21 +1056,20 @@
   </section>
 
   <!-- =====================  CHAPTER 04: GALLERY  =====================
-       Six highlights along the timeline (merchant navy -> studio -> first gigs -> big stages).
-       The full collection is on gallery.html. PLACEHOLDER photos: swap each src, its alt text and its
-       year label for Drip's real photos (keep them in time order, oldest first). -->
+       Six highlights, two per chapter (Merchant Navy -> Studio -> Shows), chosen by Drip on 24 Nov 2026.
+       Each opens that photo on gallery.html (#p010 etc.). No years anywhere (Drip's choice). -->
   <section class="chapter" id="gallery" data-chapter data-accent="1.0,0.42,0.62">
     <div class="col" data-reveal>
       <p class="kicker">Chapter 04</p>
       <h2 data-split>Gallery</h2>
       <p class="lead rise" style="--d:250ms">From ship decks to main stages: the road so far, one frame at a time.</p>
       <ol class="tl">
-        <li class="shot gear-wet"><a href="gallery.html#p01" data-hover><img src="media/gallery/g01.webp" alt="PLACEHOLDER: at sea, 2012" loading="lazy" width="800" height="1000"><span class="yr">2012 · At sea</span></a></li>
-        <li class="shot gear-wet"><a href="gallery.html#p04" data-hover><img src="media/gallery/g04.webp" alt="PLACEHOLDER: at sea, 2015" loading="lazy" width="800" height="1066"><span class="yr">2015 · At sea</span></a></li>
-        <li class="shot gear-wet"><a href="gallery.html#p06" data-hover><img src="media/gallery/g06.webp" alt="PLACEHOLDER: in the studio, 2018" loading="lazy" width="1000" height="750"><span class="yr">2018 · In the studio</span></a></li>
-        <li class="shot gear-wet"><a href="gallery.html#p10" data-hover><img src="media/gallery/g10.webp" alt="PLACEHOLDER: first gigs, 2022" loading="lazy" width="800" height="800"><span class="yr">2022 · First gigs</span></a></li>
-        <li class="shot gear-wet"><a href="gallery.html#p15" data-hover><img src="media/gallery/g15.webp" alt="PLACEHOLDER: big stages, 2024" loading="lazy" width="800" height="800"><span class="yr">2024 · Big stages</span></a></li>
-        <li class="shot gear-wet"><a href="gallery.html#p18" data-hover><img src="media/gallery/g18.webp" alt="PLACEHOLDER: big stages, 2026" loading="lazy" width="800" height="1066"><span class="yr">2026 · Big stages</span></a></li>
+        <li class="shot gear-wet"><a href="gallery.html#p010" data-hover><img src="media/gallery/g010.webp" alt="Merchant Navy" loading="lazy" width="1257" height="940"><span class="yr">Merchant Navy</span></a></li>
+        <li class="shot gear-wet"><a href="gallery.html#p016" data-hover><img src="media/gallery/g016.webp" alt="Merchant Navy" loading="lazy" width="890" height="884"><span class="yr">Merchant Navy</span></a></li>
+        <li class="shot gear-wet"><a href="gallery.html#p020" data-hover><img src="media/gallery/g020.webp" alt="Studio" loading="lazy" width="1080" height="606"><span class="yr">Studio</span></a></li>
+        <li class="shot gear-wet"><a href="gallery.html#p027" data-hover><img src="media/gallery/g027.webp" alt="Studio" loading="lazy" width="720" height="377"><span class="yr">Studio</span></a></li>
+        <li class="shot gear-wet"><a href="gallery.html#p109" data-hover><img src="media/gallery/g109.webp" alt="Shows" loading="lazy" width="1440" height="811"><span class="yr">Shows</span></a></li>
+        <li class="shot gear-wet"><a href="gallery.html#p104" data-hover><img src="media/gallery/g104.webp" alt="Shows" loading="lazy" width="1587" height="786"><span class="yr">Shows</span></a></li>
       </ol>
       <a class="cta" href="gallery.html" data-magnetic data-hover>See the full gallery <span aria-hidden="true">→</span></a>
     </div>
@@ -1627,7 +1627,8 @@ function scrollToS() {
    ===================================================================== */
 // The mix the whole site plays: The Drip Set. The DJ console in the Music chapter (PART M) plays it too,
 // and the 3D water dances to it. If this is left empty (''), a built-in demo beat plays instead.
-// PLACEHOLDER: media/music/drip_set.mp3 is a synthesised stand-in; replace that file with Drip's real mix.
+// STAND-IN until The Drip Set is ready: drip_set.mp3 = Drip's unreleased clip + his 8 beats (24 Nov 2026).
+// When the real set is done, replace that file (same name) and update CUES in PART M1.
 const TRACK_URL = 'media/music/drip_set.mp3';
 
 let audio = null;          // the browser's sound engine (created on the first click of the Sound button)
@@ -2607,9 +2608,10 @@ if (con && trackEl) {
     placeCues();
   })();
 
-  // The 8 hot cues sit at equal steps through the mix. PLACEHOLDER: once the real mix is in,
-  // put the exact seconds of its best moments here, for example [0, 62, 140, 233, 301, 388, 455, 530].
-  const CUES = [0, 1, 2, 3, 4, 5, 6, 7].map(k => k / 8);
+  // The 8 hot cues, in seconds. Until The Drip Set is ready (24 Nov 2026), drip_set.mp3 is a stand-in mix:
+  // Drip's unreleased clip, then his 8 beats joined with 2 s crossfades, so CUE 1 to 8 = the start of beats 1 to 8.
+  // When the real set arrives, put the seconds of its best moments here instead.
+  const CUES = [23, 41, 62, 90, 118, 143, 170, 194];
   const cuePads = document.getElementById('cPads');
   CUES.forEach((c, k) => {
     const b = document.createElement('button');
@@ -2771,16 +2773,16 @@ if (kas) {
 }
 
 // ---------- M3) THE BEAT SAMPLER ----------
-// PLACEHOLDER beats: rename each one and point "src" at Drip's real 10 to 15 second preview (with his voice tag).
-const BEATS = [
-  { name: 'Beat 01', tag: '124 BPM · house',     src: 'media/beats/beat_01.mp3' },
-  { name: 'Beat 02', tag: '128 BPM · tech house', src: 'media/beats/beat_02.mp3' },
-  { name: 'Beat 03', tag: '100 BPM · dhol',       src: 'media/beats/beat_03.mp3' },
-  { name: 'Beat 04', tag: '140 BPM · dubstep',    src: 'media/beats/beat_04.mp3' },
-  { name: 'Beat 05', tag: '122 BPM · afro house', src: 'media/beats/beat_05.mp3' },
-  { name: 'Beat 06', tag: '90 BPM · hip-hop',     src: 'media/beats/beat_06.mp3' },
-  { name: 'Beat 07', tag: '150 BPM · big room',   src: 'media/beats/beat_07.mp3' },
-  { name: 'Beat 08', tag: '118 BPM · Bollywood',  src: 'media/beats/beat_08.mp3' }
+// Drip's real beat previews (20 to 30 s each, with his voice tag). To change one: swap its file and its line in BEATS.
+const BEATS = [   // Drip's 8 beat previews (24 Nov 2026), in his pad order; name = what the pad and the licence email say
+  { name: 'Aggressive & Powerful',    tag: '90 BPM',  src: 'media/beats/beat_01.mp3' },
+  { name: 'Dubdrop',                  tag: '100 BPM', src: 'media/beats/beat_02.mp3' },
+  { name: 'Heavy Bass Dubstep',       tag: '100 BPM', src: 'media/beats/beat_03.mp3' },
+  { name: 'Old School Denver Ghetto', tag: '100 BPM', src: 'media/beats/beat_04.mp3' },
+  { name: 'Dubstep',                  tag: '150 BPM', src: 'media/beats/beat_05.mp3' },
+  { name: 'Psych Trippy Trap',        tag: '100 BPM', src: 'media/beats/beat_06.mp3' },
+  { name: 'Wobble Drop',              tag: '150 BPM', src: 'media/beats/beat_07.mp3' },
+  { name: 'Pumpy Trap',               tag: '100 BPM', src: 'media/beats/beat_08.mp3' }
 ];
 // The six ways to work with a beat (decided by Drip, 19 Nov). Every option only sends Drip an email;
 // he follows up personally. "ask" completes the sentence "I'd like ... <beat name>." in that email.

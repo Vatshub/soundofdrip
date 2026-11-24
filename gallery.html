@@ -673,6 +673,82 @@
   /* Hero press button: sits a little below the hero line */
   .hero-press { margin-top: 3.4vh; background: rgba(4, 6, 10, 0.35); backdrop-filter: blur(6px); }
   /* Contact press link: small underlined text under the main button, on its own line */
+  /* Card pictures (AI chapter): each picture sits INSIDE a water drop, like Drip's photo in the big 3D drop.
+     The drop wobbles like liquid, carries a white glint and a wet rim in the chapter colour, swells when the
+     music's bass hits (--bass, set by the script), lets a single drip fall every few seconds, and swells and
+     wobbles faster when you point at the card. Swap a picture by changing the url() on its <span class="pimg">. */
+  .pdrop {
+    position: absolute; top: 16px; right: 58px; width: 46%; max-width: 128px; aspect-ratio: 1;
+    border-radius: 50% 50% 50% 50% / 56% 56% 44% 44%;            /* a little heavier at the bottom, like a real drop */
+    overflow: hidden; isolation: isolate; pointer-events: none;
+    scale: calc(1 + var(--bass, 0) * 0.08);
+    animation: drop-wobble 4.2s ease-in-out infinite;
+    transition: scale .5s var(--ease), translate .5s var(--ease);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .45), 0 0 26px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .pdrop .pimg {                                                    /* the picture, slightly magnified like through a lens */
+    position: absolute; inset: -8%; background-size: cover; background-position: center;
+    animation: drop-lens 4.2s ease-in-out infinite;
+  }
+  .pdrop .pglint {                                                  /* the wet look on top of the picture */
+    position: absolute; inset: 0; border-radius: inherit;
+    background:
+      radial-gradient(circle at 32% 24%, rgba(255,255,255,.9) 0 5%, rgba(255,255,255,.25) 9%, transparent 22%),   /* the glint */
+      radial-gradient(circle at 70% 82%, rgba(255,255,255,.18), transparent 30%);                                 /* light caught at the bottom */
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255, 255, 255, .35),                                     /* thin wet rim */
+      inset 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent),              /* rim lit in the chapter colour */
+      inset -10px -14px 22px rgba(0, 0, 0, .45);                                      /* the far side of the drop in shade */
+  }
+  .pdrip {                                                          /* one drip that gathers under the drop and falls */
+    position: absolute; left: 50%; bottom: 2%; width: 7px; height: 9px; margin-left: -3.5px;
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--accent) 70%, #fff) 60%);
+    opacity: 0; animation: drop-drip 5.5s ease-in infinite;
+  }
+  .card:nth-child(2n) .pdrip { animation-delay: 2.1s; }   /* stagger the drips so the cards don't drip together */
+  .card:nth-child(3n) .pdrip { animation-delay: 3.6s; }
+  .card:hover .pdrop { scale: calc(1.1 + var(--bass, 0) * 0.08); translate: 0 -3px; animation-duration: 1.6s; }
+  .card:hover .pdrop .pimg { animation-duration: 1.6s; }
+  @keyframes drop-wobble {      /* the outline sways like liquid */
+    0%, 100% { border-radius: 50% 50% 50% 50% / 56% 56% 44% 44%; }
+    33%      { border-radius: 54% 46% 52% 48% / 52% 60% 40% 48%; }
+    66%      { border-radius: 47% 53% 48% 52% / 60% 52% 48% 40%; }
+  }
+  @keyframes drop-lens {        /* the picture inside shifts slightly against the outline, like refraction */
+    0%, 100% { transform: scale(1) translate(0, 0); }
+    50%      { transform: scale(1.05) translate(-2%, 1.5%); }
+  }
+  @keyframes drop-drip {        /* swell under the drop, let go, fall and fade */
+    0%, 62%  { opacity: 0; transform: translateY(0) scale(.4); }
+    72%      { opacity: 1; transform: translateY(2px) scale(1); }
+    100%     { opacity: 0; transform: translateY(60px) scale(.8); }
+  }
+  @media (prefers-reduced-motion: reduce) { .pdrop, .pdrop .pimg, .pdrip { animation: none; } }
+  .card .num, .card > div { position: relative; }      /* keep the words above the picture */
+  .card .go { z-index: 1; }                            /* the arrow stays in its corner, above the picture */
+  /* Six cards (the AI chapter): two per row (Drip's pick, 20 Nov), taller than the other chapters' cards,
+     so the picture drop is big enough to show each picture clearly */
+  .cards.six { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .cards.six .card { min-height: 360px; }
+  .cards.six .pdrop { top: 18px; right: 58px; width: 54%; max-width: 230px; }
+  @media (max-width: 700px) {
+    .cards.six { gap: 10px; }
+    .cards.six .card { min-height: 300px; padding: 14px; }
+    .cards.six .pdrop { top: 40px; left: 50%; right: auto; margin-left: -31%; width: 62%; }   /* centred under the number and arrow */
+  }
+  /* The AI chapter's two buttons, stacked: the rectangular agents button on top, the big round one below */
+  .ai-btns { margin-top: 5vh; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .ai-btns .cta { margin-top: 0; }
+  .agents-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 14px 24px; border-radius: 12px;                 /* a rectangle with soft corners, not a pill */
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    background: rgba(8, 13, 20, 0.55); color: var(--ink); font-weight: 600; font-size: 0.95rem;
+    transition: background .3s, border-color .3s, box-shadow .4s; will-change: transform;
+  }
+  .agents-btn:hover { background: color-mix(in srgb, var(--accent) 18%, rgba(8, 13, 20, 0.55)); border-color: var(--accent); box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .agents-btn:active { scale: 0.97; }
   .finale-press { display: block; margin-top: 2.2vh; font-size: 0.85rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; transition: color .3s; }
   .finale-press:hover { color: var(--ink); }
   .cta {
@@ -715,8 +791,7 @@
   .ph-open { display: block; width: 100%; overflow: hidden; cursor: zoom-in; }
   .ph img { display: block; width: 100%; height: auto; aspect-ratio: var(--r); object-fit: cover; transition: transform .9s var(--ease); }
   .ph:hover img { transform: scale(1.05); }
-  .ph figcaption { padding: 9px 12px 11px; font-size: 0.8rem; color: var(--muted); background: rgba(8, 13, 20, .7); }
-  .ph figcaption b { color: var(--ink); font-weight: 700; margin-right: 6px; }
+  .ph figcaption { display: none; }      /* no labels on the grid; the lightbox still reads it */
   .ph.hl { outline: 2px solid var(--accent); outline-offset: 3px; }      /* the photo you arrived at from the homepage */
   @media (max-width: 640px) { .grid { gap: 10px; } .ph { flex-basis: calc(var(--r) * 130px); } }
   /* Lightbox */
@@ -750,10 +825,9 @@
 <!-- The chapter dots on the right edge (one per section with data-chapter) -->
 <nav class="dots" aria-label="Chapters">
   <a href="#top"><span>Gallery</span></a>
-  <a href="#sea"><span>At sea</span></a>
-  <a href="#studio"><span>In the studio</span></a>
-  <a href="#gigs"><span>First gigs</span></a>
-  <a href="#stages"><span>Big stages</span></a>
+  <a href="#navy"><span>Merchant Navy</span></a>
+  <a href="#studio"><span>Studio</span></a>
+  <a href="#shows"><span>Shows</span></a>
   <a href="#contact"><span>Contact</span></a>
 </nav>
 
@@ -769,64 +843,144 @@
     <div class="scroll-hint">Scroll</div>
   </section>
 
-  <!-- ERA 01: At sea -->
-  <section class="chapter" id="sea" data-chapter data-accent="0.25,0.78,1.0">
+  <!-- CHAPTER 01: Merchant Navy -->
+  <section class="chapter" id="navy" data-chapter data-accent="0.25,0.78,1.0">
     <div class="col" data-reveal>
-      <p class="kicker">2012 – 2015</p>
-      <h2 data-split>At sea</h2>
-      <p class="lead">The merchant navy years.</p>
+      <p class="kicker">Chapter 01</p>
+      <h2 data-split>Merchant Navy</h2>
+      <p class="lead">Where it started: years at sea.</p>
       <div class="grid">
-        <figure class="ph gear-wet" id="p01" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2012 · At sea"><img src="media/gallery/g01.webp" alt="PLACEHOLDER: 2012 · At sea" width="1000" height="750" loading="lazy"></button><figcaption><b>2012</b> At sea</figcaption></figure>
-        <figure class="ph gear-wet" id="p02" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: 2013 · At sea"><img src="media/gallery/g02.webp" alt="PLACEHOLDER: 2013 · At sea" width="800" height="800" loading="lazy"></button><figcaption><b>2013</b> At sea</figcaption></figure>
-        <figure class="ph gear-wet" id="p03" style="--r:0.750"><button class="ph-open" data-hover aria-label="Open photo: 2014 · At sea"><img src="media/gallery/g03.webp" alt="PLACEHOLDER: 2014 · At sea" width="800" height="1066" loading="lazy"></button><figcaption><b>2014</b> At sea</figcaption></figure>
-        <figure class="ph gear-wet" id="p04" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2015 · At sea"><img src="media/gallery/g04.webp" alt="PLACEHOLDER: 2015 · At sea" width="1066" height="800" loading="lazy"></button><figcaption><b>2015</b> At sea</figcaption></figure>
+        <figure class="ph gear-wet" id="p001" style="--r:1.011"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g001.webp" alt="Merchant Navy" width="960" height="950" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p002" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g002.webp" alt="Merchant Navy" width="640" height="480" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p003" style="--r:1.916"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g003.webp" alt="Merchant Navy" width="960" height="501" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p004" style="--r:0.746"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g004.webp" alt="Merchant Navy" width="700" height="938" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p005" style="--r:0.742"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g005.webp" alt="Merchant Navy" width="702" height="946" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p006" style="--r:1.331"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g006.webp" alt="Merchant Navy" width="958" height="720" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p007" style="--r:1.338"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g007.webp" alt="Merchant Navy" width="958" height="716" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p008" style="--r:1.344"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g008.webp" alt="Merchant Navy" width="958" height="713" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p009" style="--r:1.382"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g009.webp" alt="Merchant Navy" width="1256" height="909" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p010" style="--r:1.337"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g010.webp" alt="Merchant Navy" width="1257" height="940" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p011" style="--r:1.001"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g011.webp" alt="Merchant Navy" width="940" height="939" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p012" style="--r:1.002"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g012.webp" alt="Merchant Navy" width="924" height="922" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p013" style="--r:0.994"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g013.webp" alt="Merchant Navy" width="921" height="927" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p014" style="--r:0.998"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g014.webp" alt="Merchant Navy" width="940" height="942" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p015" style="--r:1.422"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g015.webp" alt="Merchant Navy" width="1079" height="759" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p016" style="--r:1.007"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g016.webp" alt="Merchant Navy" width="890" height="884" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p017" style="--r:1.004"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g017.webp" alt="Merchant Navy" width="894" height="890" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p018" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g018.webp" alt="Merchant Navy" width="800" height="600" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
+        <figure class="ph gear-wet" id="p019" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Merchant Navy"><img src="media/gallery/g019.webp" alt="Merchant Navy" width="1080" height="720" loading="lazy"></button><figcaption>Merchant Navy</figcaption></figure>
       </div>
     </div>
   </section>
 
-  <!-- ERA 02: In the studio -->
+  <!-- CHAPTER 02: Studio -->
   <section class="chapter" id="studio" data-chapter data-accent="0.72,0.49,1.0">
     <div class="col" data-reveal>
-      <p class="kicker">2017 – 2020</p>
-      <h2 data-split>In the studio</h2>
+      <p class="kicker">Chapter 02</p>
+      <h2 data-split>Studio</h2>
       <p class="lead">Learning to make the music.</p>
       <div class="grid">
-        <figure class="ph gear-wet" id="p05" style="--r:0.800"><button class="ph-open" data-hover aria-label="Open photo: 2017 · In the studio"><img src="media/gallery/g05.webp" alt="PLACEHOLDER: 2017 · In the studio" width="800" height="1000" loading="lazy"></button><figcaption><b>2017</b> In the studio</figcaption></figure>
-        <figure class="ph gear-wet" id="p06" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2018 · In the studio"><img src="media/gallery/g06.webp" alt="PLACEHOLDER: 2018 · In the studio" width="1000" height="750" loading="lazy"></button><figcaption><b>2018</b> In the studio</figcaption></figure>
-        <figure class="ph gear-wet" id="p07" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: 2019 · In the studio"><img src="media/gallery/g07.webp" alt="PLACEHOLDER: 2019 · In the studio" width="800" height="800" loading="lazy"></button><figcaption><b>2019</b> In the studio</figcaption></figure>
-        <figure class="ph gear-wet" id="p08" style="--r:0.750"><button class="ph-open" data-hover aria-label="Open photo: 2020 · In the studio"><img src="media/gallery/g08.webp" alt="PLACEHOLDER: 2020 · In the studio" width="800" height="1066" loading="lazy"></button><figcaption><b>2020</b> In the studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p020" style="--r:1.782"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g020.webp" alt="Studio" width="1080" height="606" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p021" style="--r:1.219"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g021.webp" alt="Studio" width="1080" height="886" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p022" style="--r:0.929"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g022.webp" alt="Studio" width="1003" height="1080" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p023" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g023.webp" alt="Studio" width="1080" height="1080" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p024" style="--r:1.007"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g024.webp" alt="Studio" width="942" height="935" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p025" style="--r:1.774"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g025.webp" alt="Studio" width="1073" height="605" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p026" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g026.webp" alt="Studio" width="1072" height="603" loading="lazy"></button><figcaption>Studio</figcaption></figure>
+        <figure class="ph gear-wet" id="p027" style="--r:1.910"><button class="ph-open" data-hover aria-label="Open photo: Studio"><img src="media/gallery/g027.webp" alt="Studio" width="720" height="377" loading="lazy"></button><figcaption>Studio</figcaption></figure>
       </div>
     </div>
   </section>
 
-  <!-- ERA 03: First gigs -->
-  <section class="chapter" id="gigs" data-chapter data-accent="1.0,0.58,0.30">
+  <!-- CHAPTER 03: Shows -->
+  <section class="chapter" id="shows" data-chapter data-accent="1.0,0.42,0.62">
     <div class="col" data-reveal>
-      <p class="kicker">2021 – 2023</p>
-      <h2 data-split>First gigs</h2>
-      <p class="lead">Taking it to a crowd.</p>
+      <p class="kicker">Chapter 03</p>
+      <h2 data-split>Shows</h2>
+      <p class="lead">Taking it to the crowd.</p>
       <div class="grid">
-        <figure class="ph gear-wet" id="p09" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2021 · First gigs"><img src="media/gallery/g09.webp" alt="PLACEHOLDER: 2021 · First gigs" width="1066" height="800" loading="lazy"></button><figcaption><b>2021</b> First gigs</figcaption></figure>
-        <figure class="ph gear-wet" id="p10" style="--r:0.800"><button class="ph-open" data-hover aria-label="Open photo: 2022 · First gigs"><img src="media/gallery/g10.webp" alt="PLACEHOLDER: 2022 · First gigs" width="800" height="1000" loading="lazy"></button><figcaption><b>2022</b> First gigs</figcaption></figure>
-        <figure class="ph gear-wet" id="p11" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2022 · First gigs"><img src="media/gallery/g11.webp" alt="PLACEHOLDER: 2022 · First gigs" width="1000" height="750" loading="lazy"></button><figcaption><b>2022</b> First gigs</figcaption></figure>
-        <figure class="ph gear-wet" id="p12" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: 2023 · First gigs"><img src="media/gallery/g12.webp" alt="PLACEHOLDER: 2023 · First gigs" width="800" height="800" loading="lazy"></button><figcaption><b>2023</b> First gigs</figcaption></figure>
-        <figure class="ph gear-wet" id="p13" style="--r:0.750"><button class="ph-open" data-hover aria-label="Open photo: 2023 · First gigs"><img src="media/gallery/g13.webp" alt="PLACEHOLDER: 2023 · First gigs" width="800" height="1066" loading="lazy"></button><figcaption><b>2023</b> First gigs</figcaption></figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- ERA 04: Big stages -->
-  <section class="chapter" id="stages" data-chapter data-accent="1.0,0.42,0.62">
-    <div class="col" data-reveal>
-      <p class="kicker">2024 – 2026</p>
-      <h2 data-split>Big stages</h2>
-      <p class="lead">Megastages and festivals.</p>
-      <div class="grid">
-        <figure class="ph gear-wet" id="p14" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2024 · Big stages"><img src="media/gallery/g14.webp" alt="PLACEHOLDER: 2024 · Big stages" width="1066" height="800" loading="lazy"></button><figcaption><b>2024</b> Big stages</figcaption></figure>
-        <figure class="ph gear-wet" id="p15" style="--r:0.800"><button class="ph-open" data-hover aria-label="Open photo: 2024 · Big stages"><img src="media/gallery/g15.webp" alt="PLACEHOLDER: 2024 · Big stages" width="800" height="1000" loading="lazy"></button><figcaption><b>2024</b> Big stages</figcaption></figure>
-        <figure class="ph gear-wet" id="p16" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: 2025 · Big stages"><img src="media/gallery/g16.webp" alt="PLACEHOLDER: 2025 · Big stages" width="1000" height="750" loading="lazy"></button><figcaption><b>2025</b> Big stages</figcaption></figure>
-        <figure class="ph gear-wet" id="p17" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: 2025 · Big stages"><img src="media/gallery/g17.webp" alt="PLACEHOLDER: 2025 · Big stages" width="800" height="800" loading="lazy"></button><figcaption><b>2025</b> Big stages</figcaption></figure>
-        <figure class="ph gear-wet" id="p18" style="--r:0.750"><button class="ph-open" data-hover aria-label="Open photo: 2026 · Big stages"><img src="media/gallery/g18.webp" alt="PLACEHOLDER: 2026 · Big stages" width="800" height="1066" loading="lazy"></button><figcaption><b>2026</b> Big stages</figcaption></figure>
+        <figure class="ph gear-wet" id="p028" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g028.webp" alt="Shows" width="1600" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p029" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g029.webp" alt="Shows" width="1280" height="1280" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p030" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g030.webp" alt="Shows" width="1600" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p031" style="--r:2.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g031.webp" alt="Shows" width="1280" height="640" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p032" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g032.webp" alt="Shows" width="1600" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p033" style="--r:0.986"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g033.webp" alt="Shows" width="720" height="730" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p034" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g034.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p035" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g035.webp" alt="Shows" width="1600" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p036" style="--r:0.562"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g036.webp" alt="Shows" width="900" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p037" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g037.webp" alt="Shows" width="1600" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p038" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g038.webp" alt="Shows" width="1600" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p039" style="--r:0.562"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g039.webp" alt="Shows" width="900" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p040" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g040.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p041" style="--r:0.707"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g041.webp" alt="Shows" width="1131" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p042" style="--r:0.800"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g042.webp" alt="Shows" width="720" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p043" style="--r:1.911"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g043.webp" alt="Shows" width="1376" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p044" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g044.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p045" style="--r:0.764"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g045.webp" alt="Shows" width="1223" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p046" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g046.webp" alt="Shows" width="1600" height="900" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p047" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g047.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p048" style="--r:1.798"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g048.webp" alt="Shows" width="1600" height="890" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p049" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g049.webp" alt="Shows" width="1080" height="1080" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p050" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g050.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p051" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g051.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p052" style="--r:0.680"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g052.webp" alt="Shows" width="720" height="1059" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p053" style="--r:1.517"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g053.webp" alt="Shows" width="1080" height="712" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p054" style="--r:1.667"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g054.webp" alt="Shows" width="1600" height="960" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p055" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g055.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p056" style="--r:1.502"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g056.webp" alt="Shows" width="1364" height="908" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p057" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g057.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p058" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g058.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p059" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g059.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p060" style="--r:1.405"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g060.webp" alt="Shows" width="1600" height="1139" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p061" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g061.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p062" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g062.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p063" style="--r:0.667"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g063.webp" alt="Shows" width="1067" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p064" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g064.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p065" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g065.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p066" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g066.webp" alt="Shows" width="1440" height="960" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p067" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g067.webp" alt="Shows" width="1440" height="960" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p068" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g068.webp" alt="Shows" width="1440" height="960" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p069" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g069.webp" alt="Shows" width="1080" height="1080" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p070" style="--r:1.860"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g070.webp" alt="Shows" width="1600" height="860" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p071" style="--r:0.992"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g071.webp" alt="Shows" width="480" height="484" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p072" style="--r:1.600"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g072.webp" alt="Shows" width="1600" height="1000" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p073" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g073.webp" alt="Shows" width="1280" height="1280" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p074" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g074.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p075" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g075.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p076" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g076.webp" alt="Shows" width="750" height="750" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p077" style="--r:2.222"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g077.webp" alt="Shows" width="1600" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p078" style="--r:2.222"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g078.webp" alt="Shows" width="1600" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p079" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g079.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p080" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g080.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p081" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g081.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p082" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g082.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p083" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g083.webp" alt="Shows" width="1600" height="1067" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p084" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g084.webp" alt="Shows" width="1280" height="960" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p085" style="--r:0.666"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g085.webp" alt="Shows" width="853" height="1280" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p086" style="--r:1.333"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g086.webp" alt="Shows" width="1040" height="780" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p087" style="--r:1.501"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g087.webp" alt="Shows" width="1280" height="853" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p088" style="--r:1.501"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g088.webp" alt="Shows" width="1280" height="853" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p089" style="--r:0.659"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g089.webp" alt="Shows" width="843" height="1280" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p090" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g090.webp" alt="Shows" width="1080" height="1080" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p091" style="--r:1.501"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g091.webp" alt="Shows" width="1280" height="853" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p092" style="--r:1.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g092.webp" alt="Shows" width="794" height="794" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p093" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g093.webp" alt="Shows" width="1080" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p094" style="--r:1.500"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g094.webp" alt="Shows" width="1080" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p095" style="--r:1.776"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g095.webp" alt="Shows" width="1032" height="581" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p096" style="--r:0.869"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g096.webp" alt="Shows" width="1112" height="1280" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p097" style="--r:1.779"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g097.webp" alt="Shows" width="1599" height="899" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p098" style="--r:1.779"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g098.webp" alt="Shows" width="1599" height="899" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p099" style="--r:1.779"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g099.webp" alt="Shows" width="1599" height="899" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p100" style="--r:1.803"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g100.webp" alt="Shows" width="1522" height="844" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p101" style="--r:1.538"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g101.webp" alt="Shows" width="1410" height="917" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p102" style="--r:0.759"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g102.webp" alt="Shows" width="1214" height="1600" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p103" style="--r:1.966"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g103.webp" alt="Shows" width="1600" height="814" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p104" style="--r:2.019"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g104.webp" alt="Shows" width="1587" height="786" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p105" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g105.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p106" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g106.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p107" style="--r:1.778"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g107.webp" alt="Shows" width="1280" height="720" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p108" style="--r:2.000"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g108.webp" alt="Shows" width="900" height="450" loading="lazy"></button><figcaption>Shows</figcaption></figure>
+        <figure class="ph gear-wet" id="p109" style="--r:1.776"><button class="ph-open" data-hover aria-label="Open photo: Shows"><img src="media/gallery/g109.webp" alt="Shows" width="1440" height="811" loading="lazy"></button><figcaption>Shows</figcaption></figure>
       </div>
     </div>
   </section>
@@ -1390,7 +1544,8 @@ function scrollToS() {
    ===================================================================== */
 // The mix the whole site plays: The Drip Set. The DJ console in the Music chapter (PART M) plays it too,
 // and the 3D water dances to it. If this is left empty (''), a built-in demo beat plays instead.
-// PLACEHOLDER: media/music/drip_set.mp3 is a synthesised stand-in; replace that file with Drip's real mix.
+// STAND-IN until The Drip Set is ready: drip_set.mp3 = Drip's unreleased clip + his 8 beats (24 Nov 2026).
+// When the real set is done, replace that file (same name) and update CUES in PART M1.
 const TRACK_URL = 'media/music/drip_set.mp3';
 
 let audio = null;          // the browser's sound engine (created on the first click of the Sound button)
@@ -1400,6 +1555,7 @@ let spectrum = null;       // the analyser's measurements land in this list
 let trackEl = null;        // your audio file, if TRACK_URL is set
 let noiseBuffer = null;    // a second of hiss, used to make the hi-hat sound
 let soundOn = false, beatTimer = 0, nextStepTime = 0, stepIndex = 0;
+let lastBassCss = '';                 // the last bass value handed to CSS (only updated when it changes)
 const levels = [0, 0, 0];  // bass, mids, treble right now (0 to 1): these drive the visuals
 
 // The mix is prepared straight away (only its length is fetched, not the whole file), so the DJ console
@@ -1689,6 +1845,8 @@ function frame(t) {
   // 0) Listen to the music (all zeros while sound is off)
   readLevels();
   const [bass, mids, treble] = levels;
+  const bassCss = bass.toFixed(2);                      // the card drops swell on the bass too (CSS --bass)
+  if (bassCss !== lastBassCss) { document.documentElement.style.setProperty('--bass', bassCss); lastBassCss = bassCss; }
   soundLed.style.transform = `scale(${(1 + bass * 1.2).toFixed(2)})`;   // the little light on the Sound button pulses too
 
   // 1) Scroll -> s, smoothed
