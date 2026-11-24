@@ -780,6 +780,46 @@
     .card { transform: none; }
     #spray { display: none; }          /* no flying drops, and the script skips the whole wet-text effect */
   }
+
+  /* ---- PRESS & AWARDS chapter (homepage) ---- */
+  .pa-grid { display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); gap: 14px; margin: 26px 0 28px; }
+  .pa-grid .pa-video { aspect-ratio: 16 / 9; align-self: center; grid-column: auto; }   /* stronger than .clip.feat, which would span both columns */
+  .pa-cards { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .pa-card { position: relative; display: grid; grid-template-columns: 38% 1fr; align-items: center; gap: 12px; padding: 10px;
+             border: 1px solid var(--line); border-radius: 14px; background: rgba(8, 13, 20, .55); transition: border-color .3s, transform .3s; }
+  .pa-card:hover { border-color: rgba(255, 200, 82, .6); transform: translateY(-2px); }
+  .pa-card img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; background: #07090d; border-radius: 9px; }   /* whole certificate, never cropped */
+  .pa-card .kind { position: absolute; left: 16px; top: 16px; font-size: .64rem; letter-spacing: .12em; text-transform: uppercase;
+                   padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255, 200, 82, .55); color: #ffd27a; background: rgba(0,0,0,.6); }
+  .pa-card .kind.won { background: #ffc852; color: #1a1205; border-color: #ffc852; }
+  .pa-card b { font-size: .86rem; line-height: 1.35; font-weight: 600; }
+  @media (max-width: 760px) {
+    .pa-grid { grid-template-columns: 1fr; }
+    .pa-cards { grid-template-rows: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .pa-card { grid-template-columns: 1fr; padding: 6px; gap: 6px; }
+    .pa-card b { font-size: .7rem; }
+    .pa-card .kind { left: 10px; top: 10px; font-size: .56rem; }
+  }
+/* MORE MENU START */
+  header.bar { z-index: 1000; }            /* the bar (and its menu) sits above the hero text, dots and 3D water */
+  header.bar:has(.more-menu.open), header.bar.menu-open { mix-blend-mode: normal; }   /* the bar's colour-invert blend would show the page through the open menu */
+  .more { position: relative; }
+  .more-btn .chev { display: inline-block; transition: transform .25s; font-size: .7em; }
+  .more-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .more-menu { position: absolute; right: 0; top: calc(100% + 10px); min-width: 210px; padding: 8px; z-index: 60;
+               background: rgba(8, 13, 20, .97); border: 1px solid var(--line); border-radius: 16px;
+               backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 18px 50px rgba(0,0,0,.45);
+               display: grid; opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; }
+  .more-menu.open { opacity: 1; transform: none; }
+  .more-menu[hidden] { display: none; }
+  .more-menu a { padding: 9px 12px; border-radius: 10px; font-size: .9rem; color: var(--ink); }
+  .more-menu a:hover, .more-menu a:focus-visible { background: rgba(255,255,255,.08); outline: none; }
+  .more-menu a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.12); }
+  .more-menu a[aria-current="page"]::after { content: " ·  you are here"; font-size: .72rem; color: var(--muted); }
+  .more-h { margin: 8px 12px 4px; font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .more-h:first-child { margin-top: 2px; }
+  @media (max-width: 560px) { .bar-actions { gap: 6px; } .bar-actions .pill { padding: 8px 11px; font-size: .74rem; } .more-menu { min-width: 190px; } }
+/* MORE MENU END */
 </style>
 </head>
 
@@ -794,6 +834,23 @@
     <!-- Sound is OFF until the visitor turns it on. Browsers block sound that starts by itself. -->
     <button class="pill" id="sound" aria-pressed="false" data-magnetic data-hover><span class="led"></span><span id="soundLabel">Sound off</span></button>
     <a class="pill" href="#contact" data-magnetic data-hover>Contact</a>
+                    <!-- MORE MENU START -->
+    <div class="more">
+      <button class="pill more-btn" id="moreBtn" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu" data-hover>More <span class="chev" aria-hidden="true">▾</span></button>
+      <nav class="more-menu" id="moreMenu" role="menu" aria-label="Pages and links" hidden>
+      <p class="more-h">Pages</p>
+      <a href="index.html" role="menuitem" aria-current="page">Home</a>
+      <a href="ai.html" role="menuitem">AI Portfolio</a>
+      <a href="apps.html" role="menuitem">Apps</a>
+      <a href="gallery.html" role="menuitem">Gallery</a>
+      <a href="press.html" role="menuitem">Press &amp; Awards</a>
+      <p class="more-h">Follow &amp; contact</p>
+      <a href="https://www.instagram.com/drip_prateekvats/" target="_blank" rel="noopener" role="menuitem">Instagram <span aria-hidden="true">↗</span></a>
+      <a href="https://www.linkedin.com/in/prateek-vats-632ba3152/" target="_blank" rel="noopener" role="menuitem">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a href="#" class="more-mail" data-mu="info" data-md="soundofdrip.com" role="menuitem">Email</a>
+      </nav>
+    </div>
+    <!-- MORE MENU END -->
   </div>
 </header>
 
@@ -804,6 +861,7 @@
   <a href="#ai"><span>AI Portfolio</span></a>
   <a href="#ventures"><span>Ventures</span></a>
   <a href="#gallery"><span>Gallery</span></a>
+  <a href="#press"><span>Press &amp; Awards</span></a>
   <a href="#contact"><span>Contact</span></a>
 </nav>
 
@@ -1072,6 +1130,30 @@
         <li class="shot gear-wet"><a href="gallery.html#p104" data-hover><img src="media/gallery/g104.webp" alt="Shows" loading="lazy" width="1587" height="786"><span class="yr">Shows</span></a></li>
       </ol>
       <a class="cta" href="gallery.html" data-magnetic data-hover>See the full gallery <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <!-- =====================  CHAPTER 05: PRESS & AWARDS  =====================
+       Added 24 Nov 2026 (Drip's request): the Nationwide Awards video in a big card (same player as the live clips:
+       silent loop on arrival, "Tap for sound" plays the full video and steps the site music aside), plus 3 award
+       cards that open the Awards section of press.html. Files live in media/press/. -->
+  <section class="chapter" id="press" data-chapter data-accent="1.0,0.78,0.32">
+    <div class="col" data-reveal>
+      <p class="kicker">Chapter 05</p>
+      <h2 data-split>Press &amp; Awards</h2>
+      <p class="lead">Recognised on stage and in print, from national awards to Asia's top DJ lists.</p>
+      <div class="pa-grid">
+        <figure class="clip feat pa-video gear-wet">
+          <video data-loop="media/press/press_video_01_loop.mp4" data-full="media/press/press_video_01_full.mp4" poster="media/press/press_video_01_poster.jpg" muted playsinline loop preload="none" aria-label="Nationwide Awards 2022: on stage and the red-carpet interview"></video>
+          <button class="tap" aria-pressed="false" data-hover><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><span>Tap for sound</span></button>
+        </figure>
+        <div class="pa-cards">
+        <a class="pa-card gear-wet" href="press.html#awards" data-hover><img src="media/press/award_01.webp" alt="Nationwide Awards: Best Emerging DJ & Music Producer of the Year" width="664" height="619" loading="lazy"><span class="kind won">Won</span><b>Nationwide Awards: Best Emerging DJ & Music Producer of the Year</b></a>
+        <a class="pa-card gear-wet" href="press.html#awards" data-hover><img src="media/press/award_05.webp" alt="Fox Story India: India's 100 Under 40, Artist" width="920" height="1400" loading="lazy"><span class="kind">Certificate</span><b>Fox Story India: India's 100 Under 40, Artist</b></a>
+        <a class="pa-card gear-wet" href="press.html#awards" data-hover><img src="media/press/award_07.webp" alt="EDM Droid: Asia's Top 25 DJs" width="960" height="960" loading="lazy"><span class="kind">Nominated</span><b>EDM Droid: Asia's Top 25 DJs</b></a>
+        </div>
+      </div>
+      <a class="cta" href="press.html" data-magnetic data-hover>All press &amp; awards <span aria-hidden="true">→</span></a>
     </div>
   </section>
 
@@ -3006,5 +3088,25 @@ document.querySelectorAll('a[data-u][data-d]').forEach(a => {
   a.addEventListener('click', arm);                                // safety net; no preventDefault, so the browser follows the link
 });
 </script>
+<!-- MORE MENU START -->
+<script>
+// MORE MENU: opens and closes the drop-down; closes on Esc, on a tap outside, or after picking a link.
+(() => {
+  const btn = document.getElementById('moreBtn'), menu = document.getElementById('moreMenu');
+  if (!btn || !menu) return;
+  const bar = btn.closest('header');
+  const open = () => { bar && bar.classList.add('menu-open'); menu.hidden = false; requestAnimationFrame(() => menu.classList.add('open')); btn.setAttribute('aria-expanded', 'true'); };
+  const close = () => { bar && bar.classList.remove('menu-open'); menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); setTimeout(() => { if (btn.getAttribute('aria-expanded') === 'false') menu.hidden = true; }, 200); };
+  btn.addEventListener('click', e => { e.stopPropagation(); btn.getAttribute('aria-expanded') === 'true' ? close() : open(); });
+  document.addEventListener('click', e => { if (!menu.contains(e.target)) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { close(); btn.focus(); } });
+  // Email: the address is joined only at the moment of the tap, so bots reading the page never see it
+  const mail = menu.querySelector('.more-mail');
+  const arm = () => { mail.href = 'mailto:' + mail.dataset.mu + '@' + mail.dataset.md; setTimeout(() => mail.href = '#', 4000); };
+  ['pointerdown', 'focus', 'click'].forEach(t => mail.addEventListener(t, arm));
+  menu.querySelectorAll('a:not(.more-mail)').forEach(a => a.addEventListener('click', close));
+})();
+</script>
+<!-- MORE MENU END -->
 </body>
 </html>
