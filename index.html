@@ -1842,6 +1842,25 @@ function initAudio() {
   if (trackEl) audio.createMediaElementSource(trackEl).connect(master);   // the mix -> volume -> analyser -> speakers
 }
 
+// THE BUBBLE'S EAR (25 Nov): every player on the page goes through the same analyser as the site mix,
+// so the bubble, the water and the drops dance to whatever is playing: the mix, a beat pad, the teaser or a video.
+// listenTo(player, via): player -> (via, e.g. the sampler's own meter) -> the ear -> speakers. Plugging in happens once per player.
+const heard = [];
+function listenTo(el, via) {
+  if (!audio) initAudio();
+  audio.resume();                                           // a tap just happened, so the browser allows sound to start
+  if (el._heard) return;
+  el._heard = true;
+  try {
+    const src = audio.createMediaElementSource(el);
+    if (via) { src.connect(via); via.connect(analyser); } else src.connect(analyser);
+    heard.push(el);
+  } catch (err) {}                                          // could not plug in: it still plays, the bubble just won't see it
+  el.addEventListener('play', () => { if (audio) audio.resume(); });
+}
+// true while the mix is on, or any plugged-in player is playing with its sound up
+function anythingPlaying() { return soundOn || heard.some(e => !e.paused && !e.muted); }
+
 soundBtn.addEventListener('click', () => {
   soundOn = !soundOn;
   if (soundOn) {
@@ -1852,7 +1871,7 @@ soundBtn.addEventListener('click', () => {
   } else {
     if (trackEl) trackEl.pause();
     clearInterval(beatTimer);
-    setTimeout(() => { if (!soundOn && audio) audio.suspend(); }, 400);   // let the last notes ring out, then rest
+    setTimeout(() => { if (!soundOn && audio && !anythingPlaying()) audio.suspend(); }, 400);   // let the last notes ring out, then rest
   }
   soundBtn.setAttribute('aria-pressed', soundOn);
   document.getElementById('soundLabel').textContent = soundOn ? 'Sound on' : 'Sound off';
@@ -1934,7 +1953,7 @@ function pad(t, chord, length) {                            // pad: a quiet held
 // Measure the music: average loudness in three pitch ranges -> levels[bass, mids, treble]
 function readLevels() {
   let target = [0, 0, 0];
-  if (soundOn && analyser) {
+  if (analyser && anythingPlaying()) {                 // the mix, a beat pad, the teaser or a video with sound
     analyser.getByteFrequencyData(spectrum);
     const avg = (from, to) => { let sum = 0; for (let i = from; i < to; i++) sum += spectrum[i]; return sum / (to - from) / 255; };
     target = [Math.pow(avg(1, 5), 1.6) * 1.3, avg(8, 40) * 1.3, avg(90, 300) * 2.6].map(v => clamp(v, 0, 1));
@@ -2935,7 +2954,7 @@ if (kas) {
   kBtn.addEventListener('click', () => {
     if (kAudio.paused) {
       if (!kAudio.getAttribute('src')) kAudio.src = kas.dataset.src;   // the file loads only on the first press
-      claimVoice(kVoice); kAudio.play().catch(() => {}); kSet(true);
+      claimVoice(kVoice); listenTo(kAudio); kAudio.play().catch(() => {}); kSet(true);
     } else { kAudio.pause(); kSet(false); }
   });
   kAudio.addEventListener('ended', () => { kSet(false); kAudio.currentTime = 0; });
@@ -2982,13 +3001,13 @@ if (sPads) {
   // The meter needs to "hear" the preview, so on the first press the preview is routed through an analyser:
   // preview -> analyser -> speakers. getByteTimeDomainData gives the raw wave; its average size (RMS) = loudness.
   let sCtx = null, sAn = null, sWave = null;
-  function hearPreviews() {
-    if (sCtx) { sCtx.resume(); return; }
+  function hearPreviews() {                    // preview -> the pad meter -> the bubble's ear -> speakers
+    if (sAn) { audio.resume(); return; }
     try {
-      sCtx = new (window.AudioContext || window.webkitAudioContext)();
-      sAn = sCtx.createAnalyser(); sAn.fftSize = 512; sWave = new Uint8Array(sAn.fftSize);
-      sCtx.createMediaElementSource(sAudio).connect(sAn); sAn.connect(sCtx.destination);
-    } catch (err) { sCtx = null; }               // no analyser? the preview still plays, the meter just stays dark
+      if (!audio) initAudio();
+      sAn = audio.createAnalyser(); sAn.fftSize = 512; sWave = new Uint8Array(sAn.fftSize);
+      listenTo(sAudio, sAn);
+    } catch (err) { sAn = null; }                // no analyser? the preview still plays, the meter just stays dark
   }
   samplerLevel = () => {
     if (current < 0 || !sAn) return 0;
@@ -3090,7 +3109,7 @@ clips.forEach(c => {
     const turnOn = c.v.muted;
     if (turnOn) {
       if (!c.full) { c.full = true; c.v.src = c.v.dataset.full; }     // first tap: the full video, from the start
-      claimVoice(clipVoice);
+      claimVoice(clipVoice); listenTo(c.v);           // the bubble hears the clip too
       clips.forEach(o => { if (o !== c) setClipSound(o, false); });
     }
     setClipSound(c, turnOn);
