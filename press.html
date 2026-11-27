@@ -1033,13 +1033,17 @@
        Files are listed in VIDEOS in build_inner.py. -->
   <section class="chapter" id="camera" data-chapter data-accent="0.98,0.46,0.36">
     <div class="col" data-reveal>
-      <p class="kicker">Interviews &amp; features</p>
+      <p class="kicker">On stage &amp; on camera</p>
       <h2 data-split>On camera</h2>
       <div class="vids">
         <figure class="vid gear-wet">
           <div class="screen"><video data-loop="media/press/press_video_01_loop.mp4" data-full="media/press/press_video_01_full.mp4" poster="media/press/press_video_01_poster.jpg" muted playsinline loop preload="none" aria-label="Nationwide Awards 2022: on stage and the red-carpet interview"></video>
           <button class="tap" aria-pressed="false" data-hover><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><span>Tap for sound</span></button></div>
           <figcaption>Nationwide Awards 2022: on stage and the red-carpet interview</figcaption>
+        </figure>
+        <figure class="vid gear-wet">
+          <div class="screen"><video data-loop="media/press/press_video_02_loop.mp4" poster="media/press/press_video_02_poster.jpg" muted playsinline loop preload="none" aria-label="Chief judge, Battle of the Bands: felicitated on stage at Damru Fest, Rishihood University, Sonipat"></video></div>
+          <figcaption>Chief judge, Battle of the Bands: felicitated on stage at Damru Fest, Rishihood University, Sonipat</figcaption>
         </figure>
       </div>
     </div>
@@ -2400,8 +2404,8 @@ requestAnimationFrame(frame);
    Turning a video's sound on switches the site's music off, and the other way round.
    ===================================================================== */
 const vids = [...document.querySelectorAll('video[data-loop]')].map(v => ({ v, btn: v.parentElement.querySelector('.tap'), full: false }));
-function setSound(c, on) { c.v.muted = !on; c.btn.setAttribute('aria-pressed', on); c.btn.querySelector('span').textContent = on ? 'Sound on' : 'Tap for sound'; }
-vids.forEach(c => c.btn.addEventListener('click', () => {
+function setSound(c, on) { c.v.muted = !on; if (!c.btn) return; c.btn.setAttribute('aria-pressed', on); c.btn.querySelector('span').textContent = on ? 'Sound on' : 'Tap for sound'; }
+vids.filter(c => c.btn).forEach(c => c.btn.addEventListener('click', () => {   // clips without a sound button just loop
   const turnOn = c.v.muted;
   if (turnOn) {
     if (!c.full) { c.full = true; c.v.src = c.v.dataset.full; }
