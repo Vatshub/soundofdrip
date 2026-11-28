@@ -1468,9 +1468,10 @@ addEventListener('scroll', () => {
    bass swells the droplet and pushes rings across the water, mids
    brighten the lamp, treble makes the surface and the mist sparkle.
    ===================================================================== */
-// PLACEHOLDER: to make the scene dance to YOUR music, put the address of an audio file between
-// the quotes, for example 'music/my-track.mp3'. While it is empty, a built-in demo beat plays instead.
-const TRACK_URL = '';
+// The Sound button plays the same mix as the rest of the site (28 Nov: switched from the built-in demo beat).
+// When The Drip Set replaces media/music/drip_set.mp3 (same name), this page picks it up automatically.
+// If this is ever left empty (''), the built-in demo beat below plays instead.
+const TRACK_URL = 'media/music/drip_set.mp3';
 
 let audio = null;          // the browser's sound engine (created on the first click of the Sound button)
 let master = null;         // one volume knob that every sound passes through
